@@ -1,64 +1,65 @@
-import { StatusBar } from "expo-status-bar";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TouchableOpacity,
-  Button,
-  Alert,
-} from "react-native";
-import React, { useState } from "react";
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import { DefaultTheme, Provider as PaperProvider } from "react-native-paper";
 
-export default function App() {
-  console.log("App is called");
-  const [title, setTitle] = useState("Hello World");
+import WelcomeScreen from "./screens/WelcomeScreen";
+import LoginScreen from "./screens/LoginScreen";
+import RegisterScreen from "./screens/RegisterScreen";
+import UserProfileScreen from "./screens/UserProfileScreen";
+import FeedScreen from "./screens/FeedScreen";
 
-  let name = "Bar Mor App";
-  const onImageClick = () => {
-    console.log("Image Clicked");
-    setTitle("Image Clicked");
-  };
+const Stack = createStackNavigator();
 
-  const onPressLearnMore = () => {
-    console.log("Learn More Clicked");
-    setTitle("Learn More Clicked");
-    Alert.alert("Hey", "Are You Sure?", [
-      { text: "Yes", onPress: () => console.log("Yes Pressed") },
-      { text: "No", onPress: () => console.log("No Pressed") },
-    ]);
-  };
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: "#6200ee",
+    accent: "#03dac4",
+    background: "#f6f6f6",
+    text: "#000000",
+    surface: "#ffffff",
+  },
+};
+
+function App() {
   return (
-    <View style={styles.container}>
-      <TouchableOpacity onPress={onImageClick}>
-        <Image style={styles.image} source={require("./assets/avatar.avif")} />
-      </TouchableOpacity>
-      <Text style={styles.text1}>{name} </Text>
-      <Text style={styles.text}>State: {title} </Text>
-
-      <Button onPress={onPressLearnMore} title="Learn More" />
-      <StatusBar style="auto" />
-    </View>
+    <PaperProvider theme={theme}>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Welcome">
+          <Stack.Screen
+            name="Welcome"
+            component={WelcomeScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerTitle: "Log In", headerTitleAlign: "center" }}
+          />
+          <Stack.Screen
+            name="Register"
+            component={RegisterScreen}
+            options={{ headerTitle: "Register", headerTitleAlign: "center" }}
+          />
+          <Stack.Screen
+            name="UserProfile"
+            component={UserProfileScreen}
+            options={{
+              headerTitle: "Your Profile",
+              headerTitleAlign: "center",
+            }}
+          />
+          <Stack.Screen
+            name="Feed"
+            component={FeedScreen}
+            options={{ headerTitle: "Feed", headerTitleAlign: "center" }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </PaperProvider>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  text: {
-    fontSize: 20,
-  },
-  text1: {
-    fontSize: 50,
-    fontWeight: "bold",
-  },
-  image: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-  },
-});
+export default App;
