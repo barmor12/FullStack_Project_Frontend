@@ -1,8 +1,13 @@
 import React from "react";
 import { ScrollView, StyleSheet } from "react-native";
-import { Button, Card, Title, Paragraph } from "react-native-paper";
+import { Button, Card, Title } from "react-native-paper";
+import { FeedScreenNavigationProp } from "../types"; // Import the correct navigation prop type
 
-const WelcomeScreen = ({ navigation }) => {
+interface Props {
+  navigation: FeedScreenNavigationProp; // Use the correct navigation prop type
+}
+
+const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Card style={styles.card}>

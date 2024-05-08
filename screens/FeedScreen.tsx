@@ -3,8 +3,17 @@ import { View, FlatList, StyleSheet, Image, Text } from "react-native";
 import { Avatar } from "react-native-paper";
 import { getAccessToken } from "../authService";
 
+// Define an interface to describe the structure of 'item' if known
+interface PostItem {
+  _id: string;
+  userProfilePic: string;
+  username: string;
+  imageUri: string;
+  text: string;
+}
+
 const FeedScreen = () => {
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<PostItem[]>([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -18,7 +27,7 @@ const FeedScreen = () => {
         if (!response.ok) {
           throw new Error("Failed to fetch posts");
         }
-        const data = await response.json();
+        const data: PostItem[] = await response.json();
         setPosts(data);
       } catch (error) {
         console.error("Error fetching posts:", error);
@@ -28,7 +37,7 @@ const FeedScreen = () => {
     fetchPosts();
   }, []);
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item }: { item: PostItem }) => (
     <View style={styles.postContainer}>
       <Avatar.Image size={50} source={{ uri: item.userProfilePic }} />
       <Text style={styles.postUsername}>{item.username}</Text>

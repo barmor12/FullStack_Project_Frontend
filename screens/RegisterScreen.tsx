@@ -1,13 +1,24 @@
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { TextInput, Button, Text } from "react-native-paper";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "../types"; // Define this type based on your navigation needs
 
-const RegisterScreen = ({ navigation }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+type RegisterScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "Register"
+>;
 
-  const isValidEmail = (email) => {
+interface Props {
+  navigation: RegisterScreenNavigationProp;
+}
+
+const RegisterScreen: React.FC<Props> = ({ navigation }) => {
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
+
+  const isValidEmail = (email: string) => {
     const re =
       /^(([^<>()\[\]\\.,;:\s@\"]+(\.[^<>()\[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);

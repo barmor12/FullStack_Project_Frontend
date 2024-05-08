@@ -1,18 +1,17 @@
 // types.ts
-import { StackNavigationProp } from "@react-navigation/stack";
-import { RouteProp } from "@react-navigation/native";
 
-// זהו הגדרת כל המסכים שלך והפרמטרים שהם עשויים לקבל בניווט
+import { ParamListBase, RouteProp } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+
+// Define your screen names here
 export type RootStackParamList = {
-  Login: undefined; // לא מקבל פרמטרים
-  Register: undefined; // לא מקבל פרמטרים
-  Profile: undefined; // לא מקבל פרמטרים
-  Feed: undefined; // לא מקבל פרמטרים
-  Post: { postId: string }; // דוגמה למסך שמקבל פרמטר, כמו ID של פוסט
-  EditProfile: undefined; // לא מקבל פרמטרים
+  Login: undefined;
+  Register: undefined;
+  Feed: undefined;
+  UserProfile: undefined;
 };
 
-// דוגמה להגדרת טיפוסים לפרופילים של ניווט בין מסכים
+// Define navigation prop types for each screen
 export type LoginScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "Login"
@@ -23,27 +22,17 @@ export type RegisterScreenNavigationProp = StackNavigationProp<
   "Register"
 >;
 
-export type ProfileScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "Profile"
->;
-
 export type FeedScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "Feed"
 >;
 
-export type PostScreenNavigationProp = StackNavigationProp<
+export type UserProfileScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
-  "Post"
+  "UserProfile"
 >;
 
-export type EditProfileScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "EditProfile"
->;
-
-// דוגמה להגדרת טיפוסים למסלולי נתיב של הניווט
-export type ProfileScreenRouteProp = RouteProp<RootStackParamList, "Profile">;
-
-export type PostScreenRouteProp = RouteProp<RootStackParamList, "Post">;
+// Define route prop type
+export type RouteProps<T extends keyof RootStackParamList> = {
+  route: RouteProp<RootStackParamList, T>;
+};

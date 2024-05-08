@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Button, Image } from "react-native";
 import { TextInput, Text } from "react-native-paper";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "../types"; // Define this type based on your navigation needs
 
-const UserProfileScreen = ({ navigation }) => {
+type UserProfileScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "UserProfile"
+>;
+
+interface Props {
+  navigation: UserProfileScreenNavigationProp;
+}
+
+const UserProfileScreen: React.FC<Props> = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [profilePic, setProfilePic] = useState("");
