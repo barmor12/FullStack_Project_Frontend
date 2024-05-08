@@ -50,7 +50,6 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
     </ScrollView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
