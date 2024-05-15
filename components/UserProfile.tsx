@@ -1,64 +1,79 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, Button, Image, StyleSheet } from "react-native";
-import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { View, StyleSheet, Image, Text, Alert } from "react-native";
+import { TextInput, Button } from "react-native-paper";
+import {
+  getAccessToken,
+  getUserProfile,
+  updateUserProfile,
+} from "../authService";
 
 const UserProfile = () => {
-  const [user, setUser] = useState({ email: "", name: "", profilePic: "" });
+  const [name, setName] = useState<string>("");
+  const [profilePic, setProfilePic] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = await getAccessToken();
+        if (!token) throw new Error("Token is null");
+        const userProfile = await getUserProfile(token);
+        setName(userProfile.name);
+        setProfilePic(userProfile.profilePic);
+        setEmail(userProfile.email);
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+          Alert.alert("Error", err.message);
+        } else {
+          setError("An unknown error occurred");
+          Alert.alert("Error", "An unknown error occurred");
+        }
+      }
+    };
     fetchUserProfile();
   }, []);
 
-  const fetchUserProfile = async () => {
-    const token = await AsyncStorage.getItem("token");
-    try {
-      const response = await axios.get(
-        "http://<your-server-ip>:3000/user/profile",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setUser(response.data);
-    } catch (err) {
-      console.error("Failed to fetch user profile:", err);
-    }
-  };
-
   const handleUpdateProfile = async () => {
-    const token = await AsyncStorage.getItem("token");
     try {
-      await axios.put("http://<your-server-ip>:3000/user/profile", user, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      alert("Profile updated successfully!");
-    } catch (err: unknown) {
-      if (typeof err === "string") {
-        console.error(err);
-      } else if (err instanceof Error) {
-        alert("Failed to update profile: " + err.message);
+      const token = await getAccessToken();
+      if (!token) throw new Error("Token is null");
+      await updateUserProfile(token, { name, profilePic, email });
+      Alert.alert("Success", "Profile updated successfully");
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+        Alert.alert("Error", err.message);
       } else {
-        console.error("An unexpected error occurred:", err);
+        setError("An unknown error occurred");
+        Alert.alert("Error", "An unknown error occurred");
       }
     }
   };
 
   return (
     <View style={styles.container}>
-      <Image source={{ uri: user.profilePic }} style={styles.profilePic} />
-      <Text>Email:</Text>
+      <Image source={{ uri: profilePic }} style={styles.profilePic} />
       <TextInput
+        label="Name"
+        value={name}
+        onChangeText={setName}
+        mode="outlined"
         style={styles.input}
-        value={user.email}
-        onChangeText={(text) => setUser({ ...user, email: text })}
       />
-      <Text>Name:</Text>
       <TextInput
+        label="Email"
+        value={email}
+        onChangeText={setEmail}
+        mode="outlined"
         style={styles.input}
-        value={user.name}
-        onChangeText={(text) => setUser({ ...user, name: text })}
+        disabled
       />
-      <Button title="Update Profile" onPress={handleUpdateProfile} />
+      <Button mode="contained" onPress={handleUpdateProfile}>
+        Update Profile
+      </Button>
+      {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
   );
 };
@@ -67,22 +82,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
     padding: 20,
-  },
-  input: {
-    width: "100%",
-    marginVertical: 10,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
   },
   profilePic: {
     width: 100,
     height: 100,
     borderRadius: 50,
+    alignSelf: "center",
     marginBottom: 20,
+  },
+  input: {
+    marginBottom: 10,
+  },
+  error: {
+    color: "red",
+    textAlign: "center",
+    marginTop: 10,
   },
 });
 

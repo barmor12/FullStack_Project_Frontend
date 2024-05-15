@@ -32,7 +32,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       const json = await response.json();
       if (response.status === 200) {
         await storeTokens(json.accessToken, json.refreshToken);
-        navigation.navigate("Posts");
+        navigation.navigate("Home");
         console.log("Login successful!");
       } else {
         setError(json.error || "Login failed!");
@@ -65,8 +65,15 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.input}
       />
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <Button mode="contained" onPress={handleLogin}>
+      <Button mode="contained" onPress={handleLogin} style={styles.button}>
         Log In
+      </Button>
+      <Button
+        mode="text"
+        onPress={() => navigation.navigate("Register")}
+        style={styles.button}
+      >
+        Don't have an account? Sign Up
       </Button>
     </View>
   );
@@ -85,6 +92,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "red",
     marginBottom: 10,
+  },
+  button: {
+    marginTop: 10,
   },
 });
 

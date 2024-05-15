@@ -1,91 +1,40 @@
 import React from "react";
-import { ScrollView, StyleSheet } from "react-native";
-import { Button, Card, Title, Paragraph } from "react-native-paper";
+import { View, Button, StyleSheet } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
-interface Props {
-  navigation: any; // Assuming your navigation prop type is set up elsewhere
-}
+const Home = () => {
+  const navigation = useNavigation();
 
-const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
+  const handleNavigateToPosts = () => {
+    navigation.navigate("Posts");
+  };
+
+  const handleNavigateToUserProfile = () => {
+    navigation.navigate("UserProfile");
+  };
+
+  const handleNavigateToCreatePost = () => {
+    navigation.navigate("CreatePost");
+  };
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Card style={styles.card}>
-        <Card.Content>
-          <Title style={styles.title}>Welcome to Bar Mor App</Title>
-          <Paragraph style={styles.paragraph}>
-            Discover, connect, and share moments and memories.
-          </Paragraph>
-        </Card.Content>
-      </Card>
+    <View style={styles.container}>
+      <Button title="Go to Posts" onPress={handleNavigateToPosts} />
       <Button
-        icon="login"
-        mode="contained"
-        onPress={() => navigation.navigate("Login")}
-        style={styles.button}
-        labelStyle={styles.buttonLabel}
-      >
-        Log In
-      </Button>
-      <Button
-        icon="account-plus"
-        mode="contained"
-        onPress={() => navigation.navigate("Register")}
-        style={styles.button}
-        labelStyle={styles.buttonLabel}
-      >
-        Register
-      </Button>
-      <Button
-        icon="account-circle"
-        mode="contained"
-        onPress={() => navigation.navigate("UserProfile")}
-        style={styles.button}
-        labelStyle={styles.buttonLabel}
-      >
-        User Profile
-      </Button>
-      <Button
-        icon="rss"
-        mode="contained"
-        onPress={() => navigation.navigate("Feed")}
-        style={styles.button}
-        labelStyle={styles.buttonLabel}
-      >
-        View Feed
-      </Button>
-    </ScrollView>
+        title="Go to User Profile"
+        onPress={handleNavigateToUserProfile}
+      />
+      <Button title="Create a Post" onPress={handleNavigateToCreatePost} />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
-  },
-  card: {
-    width: "90%",
-    marginBottom: 20,
-    elevation: 4,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#6200ee", // Example of a theme color
-  },
-  paragraph: {
-    fontSize: 16,
-    marginTop: 10,
-  },
-  button: {
-    width: "90%",
-    paddingVertical: 8,
-    marginVertical: 10,
-  },
-  buttonLabel: {
-    fontSize: 16,
   },
 });
 
-export default WelcomeScreen;
+export default Home;
