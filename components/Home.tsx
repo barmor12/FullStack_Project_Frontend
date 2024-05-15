@@ -1,10 +1,9 @@
 import React from "react";
 import { ScrollView, StyleSheet } from "react-native";
-import { Button, Card, Title } from "react-native-paper";
-import { FeedScreenNavigationProp } from "../types"; // Import the correct navigation prop type
+import { Button, Card, Title, Paragraph } from "react-native-paper";
 
 interface Props {
-  navigation: FeedScreenNavigationProp; // Use the correct navigation prop type
+  navigation: any; // Assuming your navigation prop type is set up elsewhere
 }
 
 const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
@@ -12,7 +11,10 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
     <ScrollView contentContainerStyle={styles.container}>
       <Card style={styles.card}>
         <Card.Content>
-          <Title>Bar Mor App</Title>
+          <Title style={styles.title}>Welcome to Bar Mor App</Title>
+          <Paragraph style={styles.paragraph}>
+            Discover, connect, and share moments and memories.
+          </Paragraph>
         </Card.Content>
       </Card>
       <Button
@@ -20,6 +22,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
         mode="contained"
         onPress={() => navigation.navigate("Login")}
         style={styles.button}
+        labelStyle={styles.buttonLabel}
       >
         Log In
       </Button>
@@ -28,6 +31,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
         mode="contained"
         onPress={() => navigation.navigate("Register")}
         style={styles.button}
+        labelStyle={styles.buttonLabel}
       >
         Register
       </Button>
@@ -36,6 +40,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
         mode="contained"
         onPress={() => navigation.navigate("UserProfile")}
         style={styles.button}
+        labelStyle={styles.buttonLabel}
       >
         User Profile
       </Button>
@@ -44,12 +49,14 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
         mode="contained"
         onPress={() => navigation.navigate("Feed")}
         style={styles.button}
+        labelStyle={styles.buttonLabel}
       >
         View Feed
       </Button>
     </ScrollView>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
@@ -60,12 +67,24 @@ const styles = StyleSheet.create({
   card: {
     width: "90%",
     marginBottom: 20,
-    padding: 10,
+    elevation: 4,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#6200ee", // Example of a theme color
+  },
+  paragraph: {
+    fontSize: 16,
+    marginTop: 10,
   },
   button: {
     width: "90%",
     paddingVertical: 8,
     marginVertical: 10,
+  },
+  buttonLabel: {
+    fontSize: 16,
   },
 });
 

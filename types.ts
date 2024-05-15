@@ -9,6 +9,7 @@ export type RootStackParamList = {
   Register: undefined;
   Feed: undefined;
   UserProfile: undefined;
+  Posts: undefined;
 };
 
 // Define navigation prop types for each screen
@@ -30,6 +31,11 @@ export type FeedScreenNavigationProp = StackNavigationProp<
 export type UserProfileScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "UserProfile"
+>;
+
+export type PostsScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "Posts"
 >;
 
 // Define route prop type
