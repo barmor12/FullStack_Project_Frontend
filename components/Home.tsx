@@ -1,9 +1,10 @@
 import React from "react";
 import { View, Button, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { HomeScreenNavigationProp } from "../types";
 
 const Home = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<HomeScreenNavigationProp>();
 
   const handleNavigateToPosts = () => {
     navigation.navigate("Posts");
