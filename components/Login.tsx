@@ -4,6 +4,7 @@ import { TextInput, Button } from "react-native-paper";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../types";
 import { storeTokens } from "../authService";
+import config from "../config";
 
 type LoginScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -22,13 +23,19 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const handleLogin = async () => {
     setError("");
     try {
-      const response = await fetch("http://192.168.0.140:3000/auth/login", {
+      const response = await fetch(`${config.serverUrl}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
+
+      // בדוק אם הבקשה לא נענתה בזמן
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
       const json = await response.json();
       if (response.status === 200) {
         await storeTokens(json.accessToken, json.refreshToken);

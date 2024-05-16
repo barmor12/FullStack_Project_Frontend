@@ -1,79 +1,62 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Image, Text, Alert } from "react-native";
-import { TextInput, Button } from "react-native-paper";
-import {
-  getAccessToken,
-  getUserProfile,
-  updateUserProfile,
-} from "../authService";
+import { View, Text, StyleSheet, Image } from "react-native";
+import { getAccessToken } from "../authService";
+import config from "../config";
 
-const UserProfile = () => {
-  const [name, setName] = useState<string>("");
-  const [profilePic, setProfilePic] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
+const UserProfile: React.FC = () => {
+  const [user, setUser] = useState<any>(null);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
     const fetchUserProfile = async () => {
+      setError("");
       try {
         const token = await getAccessToken();
-        if (!token) throw new Error("Token is null");
-        const userProfile = await getUserProfile(token);
-        setName(userProfile.name);
-        setProfilePic(userProfile.profilePic);
-        setEmail(userProfile.email);
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-          Alert.alert("Error", err.message);
+        const response = await fetch(`${config.serverUrl}/auth/me`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const json = await response.json();
+        if (response.status === 200) {
+          setUser(json);
         } else {
-          setError("An unknown error occurred");
-          Alert.alert("Error", "An unknown error occurred");
+          setError(json.error || "Failed to fetch user profile!");
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError("Network error or server is down");
         }
       }
     };
+
     fetchUserProfile();
   }, []);
 
-  const handleUpdateProfile = async () => {
-    try {
-      const token = await getAccessToken();
-      if (!token) throw new Error("Token is null");
-      await updateUserProfile(token, { name, profilePic, email });
-      Alert.alert("Success", "Profile updated successfully");
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-        Alert.alert("Error", err.message);
-      } else {
-        setError("An unknown error occurred");
-        Alert.alert("Error", "An unknown error occurred");
-      }
-    }
-  };
-
   return (
     <View style={styles.container}>
-      <Image source={{ uri: profilePic }} style={styles.profilePic} />
-      <TextInput
-        label="Name"
-        value={name}
-        onChangeText={setName}
-        mode="outlined"
-        style={styles.input}
-      />
-      <TextInput
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        mode="outlined"
-        style={styles.input}
-        disabled
-      />
-      <Button mode="contained" onPress={handleUpdateProfile}>
-        Update Profile
-      </Button>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {user ? (
+        <>
+          {user.profilePic && (
+            <Image
+              source={{ uri: user.profilePic }}
+              style={styles.profilePic}
+            />
+          )}
+          <Text style={styles.label}>Email:</Text>
+          <Text style={styles.value}>{user.email}</Text>
+          <Text style={styles.label}>Name:</Text>
+          <Text style={styles.value}>{user.name}</Text>
+        </>
+      ) : error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : (
+        <Text>Loading...</Text>
+      )}
     </View>
   );
 };
@@ -91,13 +74,18 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginBottom: 20,
   },
-  input: {
+  label: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  value: {
+    fontSize: 16,
     marginBottom: 10,
   },
-  error: {
+  errorText: {
+    fontSize: 16,
     color: "red",
     textAlign: "center",
-    marginTop: 10,
   },
 });
 

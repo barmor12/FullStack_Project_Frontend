@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { TextInput, Button, Text } from "react-native-paper";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../types"; // Define this type based on your navigation needs
-
+import config from "../config";
 type RegisterScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "Register"
@@ -36,7 +36,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     }
 
     try {
-      const response = await fetch("http://192.168.0.140:3000/auth/register", {
+      const response = await fetch(`${config.serverUrl}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

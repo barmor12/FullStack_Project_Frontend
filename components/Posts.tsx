@@ -11,6 +11,7 @@ import {
 import { getAccessToken } from "../authService";
 import { useNavigation } from "@react-navigation/native";
 import { PostsScreenNavigationProp, Post } from "../types";
+import config from "../config";
 
 const Posts = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -30,7 +31,7 @@ const Posts = () => {
     }
     console.log("Token:", token);
     try {
-      const response = await fetch("http://192.168.0.140:3000/post", {
+      const response = await fetch(`${config.serverUrl}/post`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -66,7 +67,9 @@ const Posts = () => {
           <TouchableOpacity
             key={post._id} // שימוש ב _id כפי שהתקבל מהשרת
             style={styles.post}
-            onPress={() => navigation.navigate("PostDetails", { post })} // העברת הפרטים של הפוסט למסך החדש
+            onPress={() =>
+              navigation.navigate("PostDetails", { postId: post._id })
+            } // העברת הפרטים של הפוסט למסך החדש
           >
             <Image
               source={{ uri: post.sender.profilePic }}

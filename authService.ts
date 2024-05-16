@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import config from "./config";
 
 export const storeTokens = async (
   accessToken: string,
@@ -36,7 +37,7 @@ export const updateUserProfile = async (
   token: string,
   profile: { name: string; profilePic: string; email: string }
 ) => {
-  const response = await fetch("http://192.168.0.140:3000/user/profile", {
+  const response = await fetch(`${config.serverUrl}/user/profile`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -52,7 +53,7 @@ export const createPost = async (
   token: string,
   post: { message: string; sender: string }
 ): Promise<any> => {
-  const response = await fetch("http://192.168.0.140:3000/post", {
+  const response = await fetch(`${config.serverUrl}/post`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -72,7 +73,7 @@ export const createPost = async (
 };
 
 export const getUserPosts = async (token: string) => {
-  const response = await fetch("http://192.168.0.140:3000/user/post", {
+  const response = await fetch(`${config.serverUrl}/user/post`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -81,7 +82,7 @@ export const getUserPosts = async (token: string) => {
 };
 
 export const getUserProfile = async (token: string) => {
-  const response = await fetch("http://192.168.0.140:3000/user/profile", {
+  const response = await fetch(`${config.serverUrl}/user/profile`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

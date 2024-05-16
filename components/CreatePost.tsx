@@ -1,53 +1,64 @@
 import React, { useState } from "react";
-import { View, TextInput, Button, Alert, StyleSheet } from "react-native";
-import { createPost } from "../authService";
+import { View, StyleSheet, Text } from "react-native";
+import { TextInput, Button } from "react-native-paper";
+import { useNavigation } from "@react-navigation/native";
+import config from "../config";
 import { getAccessToken } from "../authService";
 
-const CreatePost = () => {
-  const [message, setMessage] = useState("");
-  const [sender, setSender] = useState("");
+const CreatePost: React.FC = () => {
+  const [message, setMessage] = useState<string>("");
+  const [sender, setSender] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const navigation = useNavigation();
 
   const handleCreatePost = async () => {
+    setError("");
     try {
       const token = await getAccessToken();
-      if (!token) {
-        console.error("Token is null");
-        Alert.alert("Error", "Token is null");
-        return;
-      }
-      console.log("Token:", token);
-
-      const response = await createPost(token, { message, sender });
-      console.log("Response from createPost:", response);
-
-      // בדיקה אם התגובה מהשרת מכילה את השדות _id, message ו-sender
-      if (response && response._id && response.message && response.sender) {
-        Alert.alert("Success", "Post created successfully");
+      const response = await fetch(`${config.serverUrl}/post`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ message, sender }),
+      });
+      const json = await response.json();
+      if (response.status === 201) {
+        console.log("Response from server:", json);
+        navigation.navigate("Posts");
       } else {
-        console.error("Invalid response structure:", response);
-        Alert.alert("Error", "Failed to create post");
+        setError(json.error || "Failed to create post!");
       }
-    } catch (error) {
-      console.error("Failed to create post:", error);
-      Alert.alert("Error", "Failed to create post");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Network error or server is down");
+      }
     }
   };
 
   return (
     <View style={styles.container}>
       <TextInput
-        placeholder="Enter your message"
+        label="Message"
         value={message}
         onChangeText={setMessage}
+        mode="outlined"
         style={styles.input}
       />
       <TextInput
-        placeholder="Enter sender name"
+        label="Sender"
         value={sender}
         onChangeText={setSender}
+        mode="outlined"
         style={styles.input}
       />
-      <Button title="Create Post" onPress={handleCreatePost} />
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      <Button mode="contained" onPress={handleCreatePost} style={styles.button}>
+        Create Post
+      </Button>
     </View>
   );
 };
@@ -56,15 +67,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
     padding: 20,
   },
   input: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
     marginBottom: 10,
+  },
+  errorText: {
+    fontSize: 16,
+    color: "red",
+    marginBottom: 10,
+  },
+  button: {
+    marginTop: 10,
   },
 });
 

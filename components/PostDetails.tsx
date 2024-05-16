@@ -1,25 +1,65 @@
-import React from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { RootStackParamList } from "../types";
+import config from "../config";
+import { getAccessToken } from "../authService";
 
 type PostDetailsScreenRouteProp = RouteProp<RootStackParamList, "PostDetails">;
 
-const PostDetails = () => {
+const PostDetails: React.FC = () => {
   const route = useRoute<PostDetailsScreenRouteProp>();
-  const { post } = route.params;
+  const { postId } = route.params;
+  const [post, setPost] = useState<any>(null);
+  const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      setError("");
+      try {
+        const token = await getAccessToken();
+        const response = await fetch(`${config.serverUrl}/post/${postId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const json = await response.json();
+        if (response.status === 200) {
+          setPost(json);
+        } else {
+          setError(json.error || "Failed to fetch post!");
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError("Network error or server is down");
+        }
+      }
+    };
+
+    fetchPost();
+  }, [postId]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.id}>ID: {post._id}</Text>
-      <Image
-        source={{ uri: post.sender.profilePic }}
-        style={styles.profilePic}
-      />
-      <Text style={styles.title}>{post.sender.name}</Text>
-      <Text style={styles.author}>נכתב על ידי: {post.sender.name}</Text>
-      <Text style={styles.message}>{post.message}</Text>
-    </View>
+    <ScrollView style={styles.container}>
+      {post ? (
+        <>
+          <View style={styles.item}>
+            <Text style={styles.label}>Post By:</Text>
+            <Text style={styles.value}>{post.sender}</Text>
+          </View>
+          <View style={styles.item}>
+            <Text style={styles.label}>The Post:</Text>
+            <Text style={styles.value}>{post.message}</Text>
+          </View>
+        </>
+      ) : (
+        <Text>{error ? error : "Loading..."}</Text>
+      )}
+    </ScrollView>
   );
 };
 
@@ -27,37 +67,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    alignItems: "center",
-    backgroundColor: "#f8f9fa",
   },
-  id: {
-    fontSize: 14,
-    color: "#6c757d",
+  item: {
+    marginBottom: 300,
+  },
+  label: {
+    fontSize: 30,
     marginBottom: 10,
-  },
-  profilePic: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 10,
-  },
-  title: {
-    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 10,
-    color: "#343a40",
-  },
-  author: {
-    fontSize: 18,
-    fontStyle: "italic",
-    color: "#495057",
-    marginBottom: 10,
-  },
-  message: {
-    fontSize: 18,
     textAlign: "center",
-    color: "#495057",
-    paddingHorizontal: 20,
+  },
+  value: {
+    fontSize: 20,
+    textAlign: "right",
   },
 });
 
