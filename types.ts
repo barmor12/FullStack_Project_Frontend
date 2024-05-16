@@ -3,6 +3,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
+  Home: undefined;
   Feed: undefined;
   UserProfile: undefined;
   Posts: undefined;
@@ -10,6 +11,7 @@ export type RootStackParamList = {
   EditPost: { postId: string };
   DeletePost: { postId: string };
   CreatePost: undefined;
+  PostDetails: { post: Post };
 };
 
 export type LoginScreenNavigationProp = StackNavigationProp<
@@ -48,3 +50,22 @@ export type CreatePostScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "CreatePost"
 >;
+export type PostDetailsScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "PostDetails"
+>;
+export type HomeScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "Home"
+>;
+
+// הגדרת וייצוא סוג הפוסט
+export interface Post {
+  _id: string; // שינוי ל _id כפי שהתקבל מהשרת
+  message: string;
+  sender: {
+    name: string;
+    profilePic: string;
+  };
+  createdAt: string;
+}

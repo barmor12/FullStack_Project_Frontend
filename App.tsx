@@ -8,16 +8,8 @@ import Register from "./components/Register";
 import UserProfile from "./components/UserProfile";
 import CreatePost from "./components/CreatePost";
 import UserPosts from "./components/UserPosts";
-
-type RootStackParamList = {
-  Login: undefined;
-  Home: undefined;
-  Posts: undefined;
-  Register: undefined;
-  UserProfile: undefined;
-  CreatePost: undefined;
-  UserPosts: undefined;
-};
+import PostDetails from "./components/PostDetails";
+import { RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -32,6 +24,7 @@ function App() {
         <Stack.Screen name="UserProfile" component={UserProfile} />
         <Stack.Screen name="CreatePost" component={CreatePost} />
         <Stack.Screen name="UserPosts" component={UserPosts} />
+        <Stack.Screen name="PostDetails" component={PostDetails} />
       </Stack.Navigator>
     </NavigationContainer>
   );
