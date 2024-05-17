@@ -1,123 +1,130 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
-  Text,
-  ScrollView,
-  Image,
   StyleSheet,
-  Alert,
+  Text,
+  FlatList,
+  Image,
   TouchableOpacity,
 } from "react-native";
-import { getAccessToken } from "../authService";
 import { useNavigation } from "@react-navigation/native";
-import { PostsScreenNavigationProp, Post } from "../types";
 import config from "../config";
+import { getAccessToken } from "../authService";
+import { RootStackParamList } from "../types";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-const Posts = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
+type PostsScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "PostDetails"
+>;
+
+const Posts: React.FC = () => {
+  const [posts, setPosts] = useState<any[]>([]);
   const [error, setError] = useState<string>("");
   const navigation = useNavigation<PostsScreenNavigationProp>();
 
   useEffect(() => {
+    const fetchPosts = async () => {
+      setError("");
+      try {
+        const token = await getAccessToken();
+        const response = await fetch(`${config.serverUrl}/post`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const json = await response.json();
+        if (response.status === 200) {
+          setPosts(json);
+        } else {
+          setError(json.error || "Failed to fetch posts!");
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError("Network error or server is down");
+        }
+      }
+    };
+
     fetchPosts();
   }, []);
 
-  const fetchPosts = async () => {
-    const token = await getAccessToken();
-    if (token === null) {
-      console.error("Token is null");
-      Alert.alert("Error", "Token is null");
-      return;
-    }
-    console.log("Token:", token);
-    try {
-      const response = await fetch(`${config.serverUrl}/post`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const text = await response.text();
-      console.log("Response text:", text);
-      if (text === "[]") {
-        setError("No posts available");
-        return;
-      }
-      const data = JSON.parse(text);
-      console.log("Data:", data); // בדיקה של מבנה הנתונים המתקבלים
-      setPosts(data);
-    } catch (err) {
-      console.error("Failed to fetch posts:", err);
-      const errorMessage =
-        err instanceof Error ? err.message : "Unknown error occurred";
-      setError("Failed to fetch posts: " + errorMessage);
-      Alert.alert("Error", "Failed to fetch posts: " + errorMessage);
-    }
-  };
+  const renderItem = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      onPress={() => navigation.navigate("PostDetails", { postId: item._id })}
+    >
+      <View style={styles.post}>
+        {item.sender && item.sender.profilePic && (
+          <Image
+            source={{ uri: item.sender.profilePic }}
+            style={styles.profilePic}
+          />
+        )}
+        {item.sender && <Text style={styles.sender}>{item.sender.name}</Text>}
+        <Text style={styles.message}>{item.message}</Text>
+        {item.image && (
+          <Image source={{ uri: item.image }} style={styles.postImage} />
+        )}
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
-    <ScrollView style={styles.container}>
-      {error ? (
-        <Text style={styles.errorText}>{error}</Text>
-      ) : (
-        posts.map((post) => (
-          <TouchableOpacity
-            key={post._id} // שימוש ב _id כפי שהתקבל מהשרת
-            style={styles.post}
-            onPress={() =>
-              navigation.navigate("PostDetails", { postId: post._id })
-            } // העברת הפרטים של הפוסט למסך החדש
-          >
-            <Image
-              source={{ uri: post.sender.profilePic }}
-              style={styles.profilePic}
-            />
-            <Text style={styles.name}>{post.sender.name}</Text>
-            <Text style={styles.messagePreview}>{post.message}</Text>
-          </TouchableOpacity>
-        ))
-      )}
-    </ScrollView>
+    <View style={styles.container}>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      <FlatList
+        data={posts}
+        renderItem={renderItem}
+        keyExtractor={(item) => item._id}
+        contentContainerStyle={styles.list}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
-    backgroundColor: "#f8f9fa",
+    padding: 20,
+  },
+  list: {
+    paddingBottom: 20,
   },
   post: {
     marginBottom: 20,
     padding: 10,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    backgroundColor: "#fff",
+    borderRadius: 10,
+    backgroundColor: "#f9f9f9",
   },
   profilePic: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     marginBottom: 10,
   },
-  name: {
-    fontSize: 18,
+  sender: {
     fontWeight: "bold",
-    marginBottom: 5,
   },
-  messagePreview: {
-    fontSize: 16,
-    color: "#495057",
+  message: {
+    marginTop: 5,
+  },
+  postImage: {
+    marginTop: 10,
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
   },
   errorText: {
-    fontSize: 16,
     color: "red",
-    textAlign: "center",
-    marginTop: 20,
+    marginBottom: 10,
   },
 });
 

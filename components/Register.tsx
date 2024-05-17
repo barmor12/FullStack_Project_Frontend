@@ -1,9 +1,17 @@
 import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
-import { TextInput, Button, Text } from "react-native-paper";
+import {
+  View,
+  StyleSheet,
+  Text,
+  Image,
+  Button as RNButton,
+} from "react-native";
+import { TextInput, Button } from "react-native-paper";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../types"; // Define this type based on your navigation needs
+import { RootStackParamList } from "../types";
 import config from "../config";
+import * as ImagePicker from "expo-image-picker";
+
 type RegisterScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "Register"
@@ -16,11 +24,12 @@ interface Props {
 const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [profilePic, setProfilePic] = useState<string>("");
+  const [name, setName] = useState<string>(""); // שדה שם משתמש חדש
   const [error, setError] = useState<string>("");
 
   const isValidEmail = (email: string) => {
-    const re =
-      /^(([^<>()\[\]\\.,;:\s@\"]+(\.[^<>()\[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
   };
 
@@ -36,13 +45,30 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     }
 
     try {
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("name", name);
+      if (profilePic) {
+        const fileName = profilePic.split("/").pop();
+        const fileType = profilePic.split(".").pop();
+        formData.append("profilePic", {
+          uri: profilePic,
+          name: fileName,
+          type: `image/${fileType}`,
+        } as any);
+      }
+
+      console.log(formData);
+
       const response = await fetch(`${config.serverUrl}/auth/register`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
-        body: JSON.stringify({ email, password }),
+        body: formData,
       });
+
       const json = await response.json();
       if (response.status === 201) {
         navigation.navigate("Login");
@@ -51,6 +77,19 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       }
     } catch (err) {
       setError("Network error or server is down");
+    }
+  };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setProfilePic(result.assets[0].uri);
     }
   };
 
@@ -72,9 +111,20 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         secureTextEntry
         style={styles.input}
       />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button mode="contained" onPress={handleSignUp}>
-        Sign Up
+      <TextInput
+        label="Username"
+        value={name}
+        onChangeText={setName}
+        mode="outlined"
+        style={styles.input}
+      />
+      <RNButton title="Pick an image from camera roll" onPress={pickImage} />
+      {profilePic ? (
+        <Image source={{ uri: profilePic }} style={styles.image} />
+      ) : null}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      <Button mode="contained" onPress={handleSignUp} style={styles.button}>
+        Register
       </Button>
     </View>
   );
@@ -89,9 +139,17 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 10,
   },
-  error: {
+  button: {
+    marginTop: 10,
+  },
+  image: {
+    width: 200,
+    height: 200,
+    marginTop: 10,
+  },
+  errorText: {
     color: "red",
-    marginBottom: 10,
+    marginTop: 10,
   },
 });
 
