@@ -104,6 +104,13 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         autoCapitalize="none"
       />
       <TextInput
+        label="Username"
+        value={name}
+        onChangeText={setName}
+        mode="outlined"
+        style={styles.input}
+      />
+      <TextInput
         label="Password"
         value={password}
         onChangeText={setPassword}
@@ -111,14 +118,9 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         secureTextEntry
         style={styles.input}
       />
-      <TextInput
-        label="Username"
-        value={name}
-        onChangeText={setName}
-        mode="outlined"
-        style={styles.input}
-      />
-      <RNButton title="Pick an image from camera roll" onPress={pickImage} />
+      <Button mode="elevated" onPress={pickImage} style={styles.button}>
+        Upload Picture{" "}
+      </Button>
       {profilePic ? (
         <Image source={{ uri: profilePic }} style={styles.image} />
       ) : null}
@@ -140,7 +142,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   button: {
-    marginTop: 10,
+    marginTop: 20,
   },
   image: {
     width: 200,
