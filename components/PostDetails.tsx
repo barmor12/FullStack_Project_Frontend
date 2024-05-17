@@ -58,11 +58,21 @@ const PostDetails: React.FC = () => {
             ) : (
               <View style={styles.placeholderPic} />
             )}
+            <View>
+              <Text style={styles.senderName}>{post.sender.name}</Text>
+              <Text style={styles.postDate}>
+                {new Date(post.createdAt).toLocaleDateString()}{" "}
+                {new Date(post.createdAt).toLocaleTimeString()}
+              </Text>
+            </View>
           </View>
-          <Text style={styles.messageLabel}>User Name:</Text>
-          <Text style={styles.message}>{post.sender.name}</Text>
           <View style={styles.content}>
-            <Text style={styles.messageLabel}>Message:</Text>
+            {post.image && (
+              <Image
+                source={{ uri: `${config.serverUrl}${post.image}` }}
+                style={styles.postImage}
+              />
+            )}
             <Text style={styles.message}>{post.message}</Text>
           </View>
         </View>
@@ -76,11 +86,11 @@ const PostDetails: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#f0f2f5",
   },
   postContainer: {
-    margin: 20,
-    padding: 20,
+    margin: 10,
+    padding: 15,
     backgroundColor: "#ffffff",
     borderRadius: 10,
     shadowColor: "#000",
@@ -92,36 +102,41 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 15,
   },
   profilePic: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    marginRight: 15,
+    marginRight: 10,
   },
   placeholderPic: {
     width: 50,
     height: 50,
     borderRadius: 25,
     backgroundColor: "#e0e0e0",
-    marginRight: 15,
+    marginRight: 10,
   },
   senderName: {
     fontSize: 18,
     fontWeight: "bold",
   },
+  postDate: {
+    fontSize: 12,
+    color: "#888",
+  },
   content: {
     marginTop: 10,
   },
-  messageLabel: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
+  postImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 10,
   },
   message: {
     fontSize: 16,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   errorText: {
     color: "red",
