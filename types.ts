@@ -4,11 +4,16 @@ export type RootStackParamList = {
   Home: undefined;
   Login: undefined;
   Register: undefined;
-  CreatePost: undefined;
-  PostDetails: { postId: string }; // ודא שה-postId כלול כאן
+  CreatePost: { postId?: string; onPostCreated?: (newPost: Post) => void }; // עדכון ל-CreatePost
+  PostDetails: { postId: string };
   Posts: undefined;
   UserProfile: undefined;
+  Main: undefined; // הוספת Main
+  CreatePostScreen: undefined;
+  UserProfileScreen: undefined;
+  HomeScreen: undefined;
 };
+
 export type LoginScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "Login"
@@ -40,13 +45,21 @@ export type UserProfileScreenNavigationProp = StackNavigationProp<
   "UserProfile"
 >;
 
-// הגדרת וייצוא סוג הפוסט
 export interface Post {
-  _id: string; // שינוי ל _id כפי שהתקבל מהשרת
+  _id: string;
   message: string;
   sender: {
+    _id: string;
     name: string;
     profilePic: string;
   };
+  image?: string;
   createdAt: string;
+}
+
+export interface User {
+  _id: string;
+  name: string;
+  profilePic: string;
+  email: string; // לפי הצורך
 }

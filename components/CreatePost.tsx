@@ -1,61 +1,57 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
-  StyleSheet,
   Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
   Image,
-  Button as RNButton,
+  Button,
+  ActivityIndicator,
 } from "react-native";
-import { TextInput, Button } from "react-native-paper";
-import { useNavigation } from "@react-navigation/native";
-import config from "../config";
-import { getAccessToken } from "../authService";
 import * as ImagePicker from "expo-image-picker";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { createPost, updatePost, getAccessToken } from "../authService";
+import {
+  RootStackParamList,
+  CreatePostScreenNavigationProp,
+  Post,
+} from "../types";
+import config from "../config";
 
-const CreatePost: React.FC = () => {
-  const [message, setMessage] = useState<string>("");
-  const [imageUri, setImageUri] = useState<string | null>(null);
+type CreatePostScreenRouteProp = RouteProp<RootStackParamList, "CreatePost">;
+
+const CreatePost = () => {
+  const navigation = useNavigation<CreatePostScreenNavigationProp>();
+  const route = useRoute<CreatePostScreenRouteProp>();
+  const { postId, onPostCreated } = route.params || {};
+
+  const [message, setMessage] = useState("");
+  const [image, setImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
-  const navigation = useNavigation();
 
-  const handleCreatePost = async () => {
-    setError("");
-    try {
-      const token = await getAccessToken();
-      const formData = new FormData();
-      formData.append("message", message);
-      if (imageUri) {
-        const fileName = imageUri.split("/").pop();
-        const fileType = imageUri.split(".").pop();
-        formData.append("image", {
-          uri: imageUri,
-          name: fileName,
-          type: `image/${fileType}`,
-        } as any);
-      }
-
-      const response = await fetch(`${config.serverUrl}/post`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      const json = await response.json();
-      if (response.status === 201) {
-        navigation.navigate("Posts");
-      } else {
-        setError(json.error || "Failed to create post!");
-      }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("Network error or server is down");
-      }
+  useEffect(() => {
+    if (postId) {
+      const fetchPostData = async () => {
+        try {
+          const token = await getAccessToken();
+          const response = await fetch(`${config.serverUrl}/post/${postId}`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const post = await response.json();
+          setMessage(post.message);
+          setImage(post.image || null);
+        } catch (error) {
+          setError("Failed to fetch post data");
+        }
+      };
+      fetchPostData();
     }
-  };
+  }, [postId]);
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -65,28 +61,79 @@ const CreatePost: React.FC = () => {
       quality: 1,
     });
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setImageUri(result.assets[0].uri);
+    console.log(result);
+
+    if (!result.canceled && result.assets.length > 0) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  const handleSavePost = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        throw new Error("User not authenticated");
+      }
+
+      const response = await fetch(`${config.serverUrl}/auth/user`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const userJson = await response.json();
+      const userId = userJson._id;
+
+      let postResponse;
+      const postImage = image || undefined; // Convert null to undefined
+      if (postId) {
+        postResponse = await updatePost(token, postId, {
+          message,
+          image: postImage,
+        });
+      } else {
+        postResponse = await createPost(token, {
+          message,
+          sender: userId,
+          image: postImage,
+        });
+      }
+      if (onPostCreated) {
+        onPostCreated(postResponse);
+      }
+      navigation.goBack();
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Failed to save post");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
       <TextInput
-        label="Message"
+        style={styles.input}
+        placeholder="What's on your mind?"
         value={message}
         onChangeText={setMessage}
-        mode="outlined"
-        style={styles.input}
       />
-      <RNButton title="Pick an image from camera roll" onPress={pickImage} />
-      {imageUri && (
-        <Image source={{ uri: imageUri }} style={{ width: 200, height: 200 }} />
-      )}
+      {image && <Image source={{ uri: image }} style={styles.image} />}
+      <Button title="Pick an image from gallery" onPress={pickImage} />
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <Button mode="contained" onPress={handleCreatePost} style={styles.button}>
-        Create Post
-      </Button>
+      <TouchableOpacity style={styles.button} onPress={handleSavePost}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>{postId ? "Update" : "Post"}</Text>
+        )}
+      </TouchableOpacity>
     </View>
   );
 };
@@ -94,18 +141,40 @@ const CreatePost: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
     padding: 20,
+    justifyContent: "center",
+    backgroundColor: "#f0f2f5",
   },
   input: {
-    marginBottom: 10,
+    height: 100,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 10,
+    backgroundColor: "#fff",
+    marginBottom: 20,
+  },
+  image: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 20,
   },
   button: {
-    marginTop: 10,
+    backgroundColor: "#007bff",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   errorText: {
     color: "red",
-    marginTop: 10,
+    marginBottom: 10,
+    textAlign: "center",
   },
 });
 

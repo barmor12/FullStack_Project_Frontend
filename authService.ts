@@ -37,7 +37,8 @@ export const updateUserProfile = async (
   token: string,
   profile: { name: string; profilePic: string; email: string }
 ) => {
-  const response = await fetch(`${config.serverUrl}/user/profile`, {
+  const response = await fetch(`${config.serverUrl}/auth/user`, {
+    // עדכון הנתיב ל-auth/user
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -48,10 +49,9 @@ export const updateUserProfile = async (
   return response.json();
 };
 
-// authService.ts
 export const createPost = async (
   token: string,
-  post: { message: string; sender: string }
+  post: { message: string; sender: string; image?: string }
 ): Promise<any> => {
   const response = await fetch(`${config.serverUrl}/post`, {
     method: "POST",
@@ -73,7 +73,8 @@ export const createPost = async (
 };
 
 export const getUserPosts = async (token: string) => {
-  const response = await fetch(`${config.serverUrl}/user/post`, {
+  const response = await fetch(`${config.serverUrl}/user/posts`, {
+    // עדכון הנתיב ל-auth/user/posts
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -82,7 +83,8 @@ export const getUserPosts = async (token: string) => {
 };
 
 export const getUserProfile = async (token: string) => {
-  const response = await fetch(`${config.serverUrl}/user/profile`, {
+  const response = await fetch(`${config.serverUrl}/auth/user`, {
+    // עדכון הנתיב ל-auth/user
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -91,4 +93,28 @@ export const getUserProfile = async (token: string) => {
     throw new Error(`Failed to fetch user profile: ${response.statusText}`);
   }
   return response.json();
+};
+
+export const updatePost = async (
+  token: string,
+  postId: string,
+  post: { message: string; image?: string }
+): Promise<any> => {
+  const response = await fetch(`${config.serverUrl}/post/${postId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(post),
+  });
+
+  if (!response.ok) {
+    console.error("Failed to update post, status:", response.status);
+    throw new Error("Failed to update post");
+  }
+
+  const responseJson = await response.json();
+  console.log("Response from server:", responseJson);
+  return responseJson;
 };

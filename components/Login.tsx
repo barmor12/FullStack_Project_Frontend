@@ -31,7 +31,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         body: JSON.stringify({ email, password }),
       });
 
-      // בדוק אם הבקשה לא נענתה בזמן
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -39,7 +38,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       const json = await response.json();
       if (response.status === 200) {
         await storeTokens(json.accessToken, json.refreshToken);
-        navigation.navigate("Home");
+        navigation.navigate("Main"); // נווט ל-Main
         console.log("Login successful!");
       } else {
         setError(json.error || "Login failed!");
