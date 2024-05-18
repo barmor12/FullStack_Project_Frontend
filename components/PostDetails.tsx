@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Image } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Modal,
+  Dimensions,
+  ActivityIndicator,
+} from "react-native";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "../types";
 import config from "../config";
@@ -13,6 +23,9 @@ const PostDetails: React.FC = () => {
   const { postId } = route.params;
   const [post, setPost] = useState<any>(null);
   const [error, setError] = useState<string>("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [fullImageUri, setFullImageUri] = useState<string>("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -39,15 +52,24 @@ const PostDetails: React.FC = () => {
         } else {
           setError("Network error or server is down");
         }
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchPost();
   }, [postId, navigation]);
 
+  const openFullImage = (uri: string) => {
+    setFullImageUri(uri);
+    setModalVisible(true);
+  };
+
   return (
     <ScrollView style={styles.container}>
-      {post ? (
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : post ? (
         <View style={styles.postContainer}>
           <View style={styles.header}>
             {post.sender && post.sender.profilePic ? (
@@ -68,10 +90,16 @@ const PostDetails: React.FC = () => {
           </View>
           <View style={styles.content}>
             {post.image && (
-              <Image
-                source={{ uri: `${config.serverUrl}${post.image}` }}
-                style={styles.postImage}
-              />
+              <TouchableOpacity
+                onPress={() =>
+                  openFullImage(`${config.serverUrl}${post.image}`)
+                }
+              >
+                <Image
+                  source={{ uri: `${config.serverUrl}${post.image}` }}
+                  style={styles.postImage}
+                />
+              </TouchableOpacity>
             )}
             <Text style={styles.message}>{post.message}</Text>
           </View>
@@ -79,6 +107,22 @@ const PostDetails: React.FC = () => {
       ) : (
         <Text style={styles.errorText}>{error ? error : "Loading..."}</Text>
       )}
+
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <Image source={{ uri: fullImageUri }} style={styles.fullImage} />
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setModalVisible(false)}
+          >
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -142,6 +186,29 @@ const styles = StyleSheet.create({
     color: "red",
     textAlign: "center",
     marginTop: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+  },
+  fullImage: {
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height,
+    resizeMode: "contain",
+  },
+  closeButton: {
+    position: "absolute",
+    top: 30,
+    right: 30,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 10,
+    borderRadius: 20,
+  },
+  closeButtonText: {
+    color: "#fff",
+    fontSize: 16,
   },
 });
 

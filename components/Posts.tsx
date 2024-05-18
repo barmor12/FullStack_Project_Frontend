@@ -6,6 +6,7 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import config from "../config";
@@ -21,11 +22,13 @@ type PostsScreenNavigationProp = NativeStackNavigationProp<
 const Posts: React.FC = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
   const navigation = useNavigation<PostsScreenNavigationProp>();
 
   useEffect(() => {
     const fetchPosts = async () => {
       setError("");
+      setLoading(true);
       try {
         const token = await getAccessToken();
         const response = await fetch(`${config.serverUrl}/post`, {
@@ -51,6 +54,8 @@ const Posts: React.FC = () => {
         } else {
           setError("Network error or server is down");
         }
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -62,16 +67,31 @@ const Posts: React.FC = () => {
       onPress={() => navigation.navigate("PostDetails", { postId: item._id })}
     >
       <View style={styles.post}>
-        {item.sender && item.sender.profilePic && (
-          <Image
-            source={{ uri: item.sender.profilePic }}
-            style={styles.profilePic}
-          />
-        )}
-        {item.sender && <Text style={styles.sender}>{item.sender.name}</Text>}
+        <View style={styles.postHeader}>
+          {item.sender && item.sender.profilePic ? (
+            <Image
+              source={{ uri: `${config.serverUrl}${item.sender.profilePic}` }}
+              style={styles.profilePic}
+            />
+          ) : (
+            <View style={styles.profilePicPlaceholder} />
+          )}
+          <View>
+            {item.sender && (
+              <Text style={styles.sender}>{item.sender.name}</Text>
+            )}
+            <Text style={styles.postDate}>
+              {new Date(item.createdAt).toLocaleDateString()}{" "}
+              {new Date(item.createdAt).toLocaleTimeString()}
+            </Text>
+          </View>
+        </View>
         <Text style={styles.message}>{item.message}</Text>
         {item.image && (
-          <Image source={{ uri: item.image }} style={styles.postImage} />
+          <Image
+            source={{ uri: `${config.serverUrl}${item.image}` }}
+            style={styles.postImage}
+          />
         )}
       </View>
     </TouchableOpacity>
@@ -79,13 +99,19 @@ const Posts: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <FlatList
-        data={posts}
-        renderItem={renderItem}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.list}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          <FlatList
+            data={posts}
+            renderItem={renderItem}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.list}
+          />
+        </>
+      )}
     </View>
   );
 };
@@ -93,28 +119,52 @@ const Posts: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: "#f0f2f5",
   },
   list: {
     paddingBottom: 20,
   },
   post: {
-    marginBottom: 20,
-    padding: 10,
+    marginBottom: 15,
+    padding: 15,
     borderRadius: 10,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#ffffff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  postHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
   },
   profilePic: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginBottom: 10,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 10,
+  },
+  profilePicPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#cccccc",
+    marginRight: 10,
   },
   sender: {
     fontWeight: "bold",
+    fontSize: 16,
+  },
+  postDate: {
+    fontSize: 12,
+    color: "#888",
   },
   message: {
     marginTop: 5,
+    fontSize: 14,
+    color: "#333",
   },
   postImage: {
     marginTop: 10,
@@ -125,6 +175,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: "red",
     marginBottom: 10,
+    textAlign: "center",
   },
 });
 
