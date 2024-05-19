@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,12 @@ import {
   Dimensions,
   ActivityIndicator,
 } from "react-native";
-import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
+import {
+  RouteProp,
+  useRoute,
+  useNavigation,
+  useFocusEffect,
+} from "@react-navigation/native";
 import { RootStackParamList } from "../types";
 import config from "../config";
 import { getAccessToken } from "../authService";
@@ -27,38 +32,44 @@ const PostDetails: React.FC = () => {
   const [fullImageUri, setFullImageUri] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchPost = async () => {
-      setError("");
-      try {
-        const token = await getAccessToken();
-        const response = await fetch(`${config.serverUrl}/post/${postId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const json = await response.json();
-        if (response.status === 200) {
-          setPost(json);
-          navigation.setOptions({ title: json.sender?.name || "Post Details" });
-        } else {
-          setError(json.error || "Failed to fetch post!");
-        }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          setError(error.message);
-        } else {
-          setError("Network error or server is down");
-        }
-      } finally {
-        setLoading(false);
+  const fetchPost = async () => {
+    setError("");
+    try {
+      const token = await getAccessToken();
+      const response = await fetch(`${config.serverUrl}/post/${postId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const json = await response.json();
+      if (response.status === 200) {
+        setPost(json);
+        navigation.setOptions({ title: json.sender?.name || "Post Details" });
+      } else {
+        setError(json.error || "Failed to fetch post!");
       }
-    };
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Network error or server is down");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchPost();
+    }, [postId])
+  );
+
+  useEffect(() => {
     fetchPost();
-  }, [postId, navigation]);
+  }, [postId]);
 
   const openFullImage = (uri: string) => {
     setFullImageUri(uri);

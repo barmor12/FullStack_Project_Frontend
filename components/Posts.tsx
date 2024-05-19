@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -7,8 +7,9 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import config from "../config";
 import { getAccessToken } from "../authService";
 import { RootStackParamList } from "../types";
@@ -23,44 +24,57 @@ const Posts: React.FC = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const navigation = useNavigation<PostsScreenNavigationProp>();
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setError("");
-      setLoading(true);
-      try {
-        const token = await getAccessToken();
-        const response = await fetch(`${config.serverUrl}/post`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  const fetchPosts = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const token = await getAccessToken();
+      const response = await fetch(`${config.serverUrl}/post`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-
-        const json = await response.json();
-        if (response.status === 200) {
-          setPosts(json);
-        } else {
-          setError(json.error || "Failed to fetch posts!");
-        }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          setError(error.message);
-        } else {
-          setError("Network error or server is down");
-        }
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
       }
-    };
 
+      const json = await response.json();
+      if (response.status === 200) {
+        setPosts(json);
+      } else {
+        setError(json.error || "Failed to fetch posts!");
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Network error or server is down");
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPosts();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPosts();
+    }, [])
+  );
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchPosts();
+  };
 
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity
@@ -109,6 +123,9 @@ const Posts: React.FC = () => {
             renderItem={renderItem}
             keyExtractor={(item) => item._id}
             contentContainerStyle={styles.list}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
           />
         </>
       )}

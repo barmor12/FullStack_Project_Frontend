@@ -90,19 +90,19 @@ const CreatePost = () => {
       let postResponse;
       const postImage = image || undefined; // Convert null to undefined
       if (postId) {
-        postResponse = await updatePost(token, postId, {
+        postResponse = await updatePost(postId, {
           message,
           image: postImage,
         });
       } else {
-        postResponse = await createPost(token, {
+        postResponse = await createPost({
           message,
           sender: userId,
           image: postImage,
         });
       }
       if (onPostCreated) {
-        onPostCreated(postResponse);
+        onPostCreated(postResponse); // Ensure the new post is passed back
       }
       navigation.goBack();
     } catch (error) {

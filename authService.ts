@@ -33,31 +33,85 @@ export const getRefreshToken = async () => {
   }
 };
 
-export const updateUserProfile = async (
-  token: string,
-  profile: { name: string; profilePic: string; email: string }
-) => {
-  const response = await fetch(`${config.serverUrl}/auth/user`, {
-    // עדכון הנתיב ל-auth/user
+export const refreshAccessToken = async () => {
+  try {
+    const refreshToken = await getRefreshToken();
+    if (!refreshToken) throw new Error("No refresh token available");
+
+    const response = await fetch(`${config.serverUrl}/auth/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ refreshToken }), // Ensure the refreshToken is sent in the body
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to refresh access token");
+    }
+
+    const data = await response.json();
+    await storeTokens(data.accessToken, data.refreshToken);
+    return data.accessToken;
+  } catch (error) {
+    console.error("Failed to refresh access token:", error);
+    throw error;
+  }
+};
+
+export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  let accessToken = await getAccessToken();
+  if (!accessToken) {
+    accessToken = await refreshAccessToken();
+  }
+
+  if (!options.headers) {
+    options.headers = {};
+  }
+
+  options.headers = {
+    ...options.headers,
+    Authorization: `Bearer ${accessToken}`,
+  } as HeadersInit;
+
+  let response = await fetch(url, options);
+
+  if (response.status === 401) {
+    accessToken = await refreshAccessToken();
+    options.headers = {
+      ...options.headers,
+      Authorization: `Bearer ${accessToken}`,
+    } as HeadersInit;
+    response = await fetch(url, options);
+  }
+
+  return response;
+};
+
+export const updateUserProfile = async (profile: {
+  name: string;
+  profilePic: string;
+  email: string;
+}) => {
+  const response = await fetchWithAuth(`${config.serverUrl}/auth/user`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(profile),
   });
   return response.json();
 };
 
-export const createPost = async (
-  token: string,
-  post: { message: string; sender: string; image?: string }
-): Promise<any> => {
-  const response = await fetch(`${config.serverUrl}/post`, {
+export const createPost = async (post: {
+  message: string;
+  sender: string;
+  image?: string;
+}): Promise<any> => {
+  const response = await fetchWithAuth(`${config.serverUrl}/post`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(post),
   });
@@ -72,23 +126,13 @@ export const createPost = async (
   return responseJson;
 };
 
-export const getUserPosts = async (token: string) => {
-  const response = await fetch(`${config.serverUrl}/user/posts`, {
-    // עדכון הנתיב ל-auth/user/posts
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export const getUserPosts = async () => {
+  const response = await fetchWithAuth(`${config.serverUrl}/user/posts`);
   return response.json();
 };
 
-export const getUserProfile = async (token: string) => {
-  const response = await fetch(`${config.serverUrl}/auth/user`, {
-    // עדכון הנתיב ל-auth/user
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export const getUserProfile = async () => {
+  const response = await fetchWithAuth(`${config.serverUrl}/auth/user`);
   if (!response.ok) {
     throw new Error(`Failed to fetch user profile: ${response.statusText}`);
   }
@@ -96,15 +140,13 @@ export const getUserProfile = async (token: string) => {
 };
 
 export const updatePost = async (
-  token: string,
   postId: string,
   post: { message: string; image?: string }
 ): Promise<any> => {
-  const response = await fetch(`${config.serverUrl}/post/${postId}`, {
+  const response = await fetchWithAuth(`${config.serverUrl}/post/${postId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(post),
   });

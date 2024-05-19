@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -10,11 +10,12 @@ import {
   Platform,
   Modal,
   Dimensions,
+  RefreshControl,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { AntDesign, FontAwesome } from "@expo/vector-icons"; // Import FontAwesome icons
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { AntDesign, FontAwesome } from "@expo/vector-icons";
 import config from "../config";
-import { getAccessToken } from "../authService";
+import { fetchWithAuth } from "../authService";
 import { HomeScreenNavigationProp, Post, User } from "../types";
 
 const Home = () => {
@@ -24,64 +25,65 @@ const Home = () => {
   const [error, setError] = useState<string>("");
   const [modalVisible, setModalVisible] = useState(false);
   const [fullImageUri, setFullImageUri] = useState<string>("");
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchUserAndPosts = async () => {
-      setError("");
-      try {
-        const token = await getAccessToken();
-        const userResponse = await fetch(`${config.serverUrl}/auth/user`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        console.log(`User response status: ${userResponse.status}`);
+  const fetchPosts = async () => {
+    setError("");
+    try {
+      const userResponse = await fetchWithAuth(`${config.serverUrl}/auth/user`);
+      console.log(`User response status: ${userResponse.status}`);
 
-        const postsResponse = await fetch(`${config.serverUrl}/post`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        console.log(`Posts response status: ${postsResponse.status}`);
+      const postsResponse = await fetchWithAuth(`${config.serverUrl}/post`);
+      console.log(`Posts response status: ${postsResponse.status}`);
 
-        if (!userResponse.ok || !postsResponse.ok) {
-          throw new Error(
-            `Network response was not ok: user: ${userResponse.status}, posts: ${postsResponse.status}`
-          );
-        }
-
-        const userJson = await userResponse.json();
-        const postsJson = await postsResponse.json();
-
-        if (userResponse.status === 200 && postsResponse.status === 200) {
-          setUser(userJson);
-          setPosts(postsJson);
-        } else {
-          setError(userJson.error || "Failed to fetch data!");
-        }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          setError(error.message);
-        } else {
-          setError("Network error or server is down");
-        }
+      if (!userResponse.ok || !postsResponse.ok) {
+        throw new Error(
+          `Network response was not ok: user: ${userResponse.status}, posts: ${postsResponse.status}`
+        );
       }
-    };
 
-    fetchUserAndPosts();
-  }, []);
+      const userJson = await userResponse.json();
+      const postsJson = await postsResponse.json();
+
+      if (userResponse.status === 200 && postsResponse.status === 200) {
+        setUser(userJson);
+        setPosts(postsJson);
+      } else {
+        setError(userJson.error || "Failed to fetch data!");
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Network error or server is down");
+      }
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPosts();
+    }, [])
+  );
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchPosts().finally(() => setRefreshing(false));
+  };
 
   const handleNavigateToUserProfile = () => {
     navigation.navigate("UserProfile");
   };
+
   const handleNavigateToCreatePost = (postId?: string) => {
     navigation.navigate("CreatePost", {
       postId,
-      onPostCreated: (newPost: Post) => {
-        setPosts((prevPosts) => [newPost, ...prevPosts]);
-      },
+    });
+  };
+
+  const handleNavigateToPostDetails = (postId: string) => {
+    navigation.navigate("PostDetails", {
+      postId,
     });
   };
 
@@ -91,19 +93,17 @@ const Home = () => {
   };
 
   const handleEditPost = (postId: string) => {
-    // הוסף כאן את הלוגיקה לעריכת הפוסט
     handleNavigateToCreatePost(postId);
   };
 
   const handleDeletePost = async (postId: string) => {
     try {
-      const token = await getAccessToken();
-      const response = await fetch(`${config.serverUrl}/post/${postId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetchWithAuth(
+        `${config.serverUrl}/post/${postId}`,
+        {
+          method: "DELETE",
+        }
+      );
       if (response.ok) {
         setPosts((prevPosts) =>
           prevPosts.filter((post) => post._id !== postId)
@@ -117,46 +117,50 @@ const Home = () => {
   };
 
   const renderItem = ({ item }: { item: Post }) => (
-    <View style={styles.post}>
-      <View style={styles.postHeader}>
-        {item.sender && item.sender.profilePic ? (
-          <Image
-            source={{ uri: `${config.serverUrl}${item.sender.profilePic}` }}
-            style={styles.profilePic}
-          />
-        ) : (
-          <View style={styles.profilePicPlaceholder} />
-        )}
-        <View style={styles.postHeaderText}>
-          {item.sender && <Text style={styles.sender}>{item.sender.name}</Text>}
-          <Text style={styles.postDate}>
-            {new Date(item.createdAt).toLocaleDateString()}{" "}
-            {new Date(item.createdAt).toLocaleTimeString()}
-          </Text>
-        </View>
-        {user && user._id === item.sender._id && (
-          <View style={styles.postActions}>
-            <TouchableOpacity onPress={() => handleEditPost(item._id)}>
-              <FontAwesome name="edit" size={24} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDeletePost(item._id)}>
-              <FontAwesome name="trash" size={24} color="red" />
-            </TouchableOpacity>
+    <TouchableOpacity onPress={() => handleNavigateToPostDetails(item._id)}>
+      <View style={styles.post}>
+        <View style={styles.postHeader}>
+          {item.sender && item.sender.profilePic ? (
+            <Image
+              source={{ uri: `${config.serverUrl}${item.sender.profilePic}` }}
+              style={styles.profilePic}
+            />
+          ) : (
+            <View style={styles.profilePicPlaceholder} />
+          )}
+          <View style={styles.postHeaderText}>
+            {item.sender && (
+              <Text style={styles.sender}>{item.sender.name}</Text>
+            )}
+            <Text style={styles.postDate}>
+              {new Date(item.createdAt).toLocaleDateString()}{" "}
+              {new Date(item.createdAt).toLocaleTimeString()}
+            </Text>
           </View>
+          {user && item.sender && user._id === item.sender._id && (
+            <View style={styles.postActions}>
+              <TouchableOpacity onPress={() => handleEditPost(item._id)}>
+                <FontAwesome name="edit" size={24} color="black" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleDeletePost(item._id)}>
+                <FontAwesome name="trash" size={24} color="red" />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+        <Text style={styles.message}>{item.message}</Text>
+        {item.image && (
+          <TouchableOpacity
+            onPress={() => openFullImage(`${config.serverUrl}${item.image}`)}
+          >
+            <Image
+              source={{ uri: `${config.serverUrl}${item.image}` }}
+              style={styles.postImage}
+            />
+          </TouchableOpacity>
         )}
       </View>
-      <Text style={styles.message}>{item.message}</Text>
-      {item.image && (
-        <TouchableOpacity
-          onPress={() => openFullImage(`${config.serverUrl}${item.image}`)}
-        >
-          <Image
-            source={{ uri: `${config.serverUrl}${item.image}` }}
-            style={styles.postImage}
-          />
-        </TouchableOpacity>
-      )}
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -179,10 +183,13 @@ const Home = () => {
       <FlatList
         data={posts}
         renderItem={renderItem}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item._id.toString()}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           error ? <Text style={styles.errorText}>{error}</Text> : null
+        }
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       />
       <View style={styles.newPostContainer}>

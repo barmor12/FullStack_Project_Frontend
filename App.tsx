@@ -2,7 +2,12 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { AntDesign } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import Login from "./components/Login";
 import Home from "./components/Home";
 import Posts from "./components/Posts";
@@ -19,7 +24,7 @@ const HomeStack = () => (
   <Stack.Navigator
     screenOptions={{
       headerStyle: {
-        backgroundColor: "#0084ff",
+        backgroundColor: "#6200ee",
       },
       headerTintColor: "#fff",
       headerTitleStyle: {
@@ -33,6 +38,7 @@ const HomeStack = () => (
       options={{ title: "Home" }}
     />
     <Stack.Screen name="PostDetails" component={PostDetails} />
+    <Stack.Screen name="CreatePost" component={CreatePost} />
   </Stack.Navigator>
 );
 
@@ -40,7 +46,7 @@ const UserProfileStack = () => (
   <Stack.Navigator
     screenOptions={{
       headerStyle: {
-        backgroundColor: "#0084ff",
+        backgroundColor: "#6200ee",
       },
       headerTintColor: "#fff",
       headerTitleStyle: {
@@ -60,7 +66,7 @@ const CreatePostStack = () => (
   <Stack.Navigator
     screenOptions={{
       headerStyle: {
-        backgroundColor: "#0084ff",
+        backgroundColor: "#6200ee",
       },
       headerTintColor: "#fff",
       headerTitleStyle: {
@@ -76,25 +82,56 @@ const CreatePostStack = () => (
   </Stack.Navigator>
 );
 
+type TabBarIconProps = {
+  route: { name: string };
+  focused: boolean;
+  color: string;
+  size: number;
+};
+
+const AnimatedTabBarIcon: React.FC<TabBarIconProps> = ({
+  route,
+  focused,
+  color,
+  size,
+}) => {
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: withSpring(focused ? 1.2 : 1) }],
+    };
+  });
+
+  let iconName = "";
+
+  if (route.name === "HomeTab") {
+    iconName = "home-outline";
+  } else if (route.name === "Posts") {
+    iconName = "list-outline";
+  } else if (route.name === "CreatePostTab") {
+    iconName = "add-circle-outline";
+  } else if (route.name === "UserProfileTab") {
+    iconName = "person-outline";
+  }
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Ionicons name={iconName as any} size={size} color={color} />
+    </Animated.View>
+  );
+};
+
 const MainTabNavigator = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
-      tabBarIcon: ({ color, size }) => {
-        let iconName: keyof typeof AntDesign.glyphMap = "questioncircleo"; // ערך ברירת מחדל
-
-        if (route.name === "HomeTab") {
-          iconName = "home";
-        } else if (route.name === "Posts") {
-          iconName = "profile";
-        } else if (route.name === "CreatePostTab") {
-          iconName = "pluscircleo";
-        } else if (route.name === "UserProfileTab") {
-          iconName = "user";
-        }
-
-        return <AntDesign name={iconName} size={size} color={color} />;
-      },
-      tabBarActiveTintColor: "tomato",
+      tabBarIcon: ({ focused, color, size }) => (
+        <AnimatedTabBarIcon
+          route={route}
+          focused={focused}
+          color={color}
+          size={size}
+        />
+      ),
+      tabBarActiveTintColor: "#6200ee",
       tabBarInactiveTintColor: "gray",
     })}
   >
@@ -124,7 +161,7 @@ const App = () => {
         initialRouteName="Login"
         screenOptions={{
           headerStyle: {
-            backgroundColor: "#0084ff",
+            backgroundColor: "#6200ee",
           },
           headerTintColor: "#fff",
           headerTitleStyle: {
