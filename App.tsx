@@ -1,13 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useAnimatedStyle,
-  useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import axios from "axios";
 import Login from "./components/Login";
 import Home from "./components/Home";
 import Posts from "./components/Posts";
@@ -15,6 +15,7 @@ import Register from "./components/Register";
 import UserProfile from "./components/UserProfile";
 import CreatePost from "./components/CreatePost";
 import PostDetails from "./components/PostDetails";
+import { getAccessToken, refreshAccessToken, clearTokens } from "./authService";
 import { RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -155,6 +156,53 @@ const MainTabNavigator = () => (
 );
 
 const App = () => {
+  useEffect(() => {
+    const requestInterceptor = axios.interceptors.request.use(
+      async (config) => {
+        let token = await getAccessToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    const responseInterceptor = axios.interceptors.response.use(
+      (response) => {
+        return response;
+      },
+      async (error) => {
+        const originalRequest = error.config;
+        if (error.response.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+          try {
+            const newAccessToken = await refreshAccessToken();
+            axios.defaults.headers.common[
+              "Authorization"
+            ] = `Bearer ${newAccessToken}`;
+            originalRequest.headers[
+              "Authorization"
+            ] = `Bearer ${newAccessToken}`;
+            return axios(originalRequest);
+          } catch (err) {
+            clearTokens();
+            // handle error gracefully
+            return Promise.reject(err);
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      axios.interceptors.request.eject(requestInterceptor);
+      axios.interceptors.response.eject(responseInterceptor);
+    };
+  }, []);
+
   return (
     <NavigationContainer>
       <Stack.Navigator

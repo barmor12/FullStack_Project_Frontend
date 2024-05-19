@@ -38,7 +38,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       const json = await response.json();
       if (response.status === 200) {
         await storeTokens(json.accessToken, json.refreshToken);
-        navigation.navigate("Main"); // נווט ל-Main
+        navigation.navigate("Main");
         console.log("Login successful!");
       } else {
         setError(json.error || "Login failed!");

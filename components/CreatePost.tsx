@@ -88,22 +88,27 @@ const CreatePost = () => {
       const userId = userJson._id;
 
       let postResponse;
-      const postImage = image || undefined; // Convert null to undefined
+      const formData = new FormData();
+      formData.append("message", message);
+      if (image) {
+        formData.append("image", {
+          uri: image,
+          type: "image/jpeg",
+          name: "photo.jpg",
+        } as any);
+      }
+
       if (postId) {
-        postResponse = await updatePost(postId, {
-          message,
-          image: postImage,
-        });
+        postResponse = await updatePost(postId, formData);
       } else {
-        postResponse = await createPost({
-          message,
-          sender: userId,
-          image: postImage,
-        });
+        formData.append("sender", userId);
+        postResponse = await createPost(formData);
       }
+
       if (onPostCreated) {
-        onPostCreated(postResponse); // Ensure the new post is passed back
+        onPostCreated(postResponse);
       }
+
       navigation.goBack();
     } catch (error) {
       if (error instanceof Error) {

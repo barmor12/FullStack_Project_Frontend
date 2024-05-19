@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import config from "../config";
-import { getAccessToken } from "../authService";
+import { getAccessToken, fetchWithAuth } from "../authService";
 import { RootStackParamList } from "../types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 

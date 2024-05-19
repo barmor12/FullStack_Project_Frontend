@@ -43,7 +43,7 @@ export const refreshAccessToken = async () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ refreshToken }), // Ensure the refreshToken is sent in the body
+      body: JSON.stringify({ refreshToken }),
     });
 
     if (!response.ok) {
@@ -56,6 +56,15 @@ export const refreshAccessToken = async () => {
   } catch (error) {
     console.error("Failed to refresh access token:", error);
     throw error;
+  }
+};
+
+export const clearTokens = async () => {
+  try {
+    await AsyncStorage.removeItem("accessToken");
+    await AsyncStorage.removeItem("refreshToken");
+  } catch (error) {
+    console.error("Failed to clear tokens:", error);
   }
 };
 
@@ -103,29 +112,6 @@ export const updateUserProfile = async (profile: {
   return response.json();
 };
 
-export const createPost = async (post: {
-  message: string;
-  sender: string;
-  image?: string;
-}): Promise<any> => {
-  const response = await fetchWithAuth(`${config.serverUrl}/post`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(post),
-  });
-
-  if (!response.ok) {
-    console.error("Failed to create post, status:", response.status);
-    throw new Error("Failed to create post");
-  }
-
-  const responseJson = await response.json();
-  console.log("Response from server:", responseJson);
-  return responseJson;
-};
-
 export const getUserPosts = async () => {
   const response = await fetchWithAuth(`${config.serverUrl}/user/posts`);
   return response.json();
@@ -139,16 +125,29 @@ export const getUserProfile = async () => {
   return response.json();
 };
 
+export const createPost = async (post: FormData): Promise<any> => {
+  const response = await fetchWithAuth(`${config.serverUrl}/post`, {
+    method: "POST",
+    body: post,
+  });
+
+  if (!response.ok) {
+    console.error("Failed to create post, status:", response.status);
+    throw new Error("Failed to create post");
+  }
+
+  const responseJson = await response.json();
+  console.log("Response from server:", responseJson);
+  return responseJson;
+};
+
 export const updatePost = async (
   postId: string,
-  post: { message: string; image?: string }
+  post: FormData
 ): Promise<any> => {
   const response = await fetchWithAuth(`${config.serverUrl}/post/${postId}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(post),
+    body: post,
   });
 
   if (!response.ok) {
