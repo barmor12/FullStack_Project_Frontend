@@ -59,15 +59,6 @@ export const refreshAccessToken = async () => {
   }
 };
 
-export const clearTokens = async () => {
-  try {
-    await AsyncStorage.removeItem("accessToken");
-    await AsyncStorage.removeItem("refreshToken");
-  } catch (error) {
-    console.error("Failed to clear tokens:", error);
-  }
-};
-
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   let accessToken = await getAccessToken();
   if (!accessToken) {
@@ -97,18 +88,16 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   return response;
 };
 
-export const updateUserProfile = async (profile: {
-  name: string;
-  profilePic: string;
-  email: string;
-}) => {
+export const updateUserProfile = async (profile: FormData) => {
   const response = await fetchWithAuth(`${config.serverUrl}/auth/user`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(profile),
+    body: profile,
   });
+
+  if (!response.ok) {
+    throw new Error("Failed to update profile");
+  }
+
   return response.json();
 };
 
@@ -158,4 +147,13 @@ export const updatePost = async (
   const responseJson = await response.json();
   console.log("Response from server:", responseJson);
   return responseJson;
+};
+
+export const clearTokens = async () => {
+  try {
+    await AsyncStorage.removeItem("accessToken");
+    await AsyncStorage.removeItem("refreshToken");
+  } catch (error) {
+    console.error("Failed to clear tokens:", error);
+  }
 };

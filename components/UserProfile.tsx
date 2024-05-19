@@ -135,16 +135,21 @@ const UserProfile: React.FC = () => {
 
     try {
       setLoading(true);
-      const updateData: any = {
-        name: newName,
-        profilePic: user.profilePic,
-        email: user.email,
-      };
-      if (oldPassword && newPassword) {
-        updateData.oldPassword = oldPassword;
-        updateData.newPassword = newPassword;
+      const formData = new FormData();
+      formData.append("name", newName);
+      formData.append("email", user.email);
+      if (user.profilePic) {
+        formData.append("profilePic", {
+          uri: user.profilePic,
+          type: "image/jpeg",
+          name: "profile.jpg",
+        } as any);
       }
-      await updateUserProfile(updateData);
+      if (oldPassword && newPassword) {
+        formData.append("oldPassword", oldPassword);
+        formData.append("newPassword", newPassword);
+      }
+      await updateUserProfile(formData);
       setUser((prevUser: any) => ({
         ...prevUser,
         name: newName,
@@ -179,11 +184,15 @@ const UserProfile: React.FC = () => {
         profilePic: selectedImage,
       }));
       // save the new profile picture to the server
-      await updateUserProfile({
-        name: user.name,
-        profilePic: selectedImage,
-        email: user.email,
-      });
+      const formData = new FormData();
+      formData.append("name", user.name);
+      formData.append("email", user.email);
+      formData.append("profilePic", {
+        uri: selectedImage,
+        type: "image/jpeg",
+        name: "profile.jpg",
+      } as any);
+      await updateUserProfile(formData);
     }
   };
 
