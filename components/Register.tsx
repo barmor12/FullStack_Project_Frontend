@@ -11,6 +11,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../types";
 import config from "../config";
 import * as ImagePicker from "expo-image-picker";
+import { useGoogleAuth } from "../authService"; // הוספת התחברות דרך גוגל
 
 type RegisterScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -27,6 +28,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const [profilePic, setProfilePic] = useState<string>("");
   const [name, setName] = useState<string>(""); // שדה שם משתמש חדש
   const [error, setError] = useState<string>("");
+  const { promptAsync } = useGoogleAuth(); // הוספת התחברות דרך גוגל
 
   const isValidEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -119,7 +121,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.input}
       />
       <Button mode="elevated" onPress={pickImage} style={styles.button}>
-        Upload Picture{" "}
+        Upload Picture
       </Button>
       {profilePic ? (
         <Image source={{ uri: profilePic }} style={styles.image} />
@@ -127,6 +129,13 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       <Button mode="contained" onPress={handleSignUp} style={styles.button}>
         Register
+      </Button>
+      <Button
+        mode="contained"
+        onPress={() => promptAsync()} // כפתור התחברות דרך גוגל
+        style={styles.button}
+      >
+        Sign up with Google
       </Button>
     </View>
   );

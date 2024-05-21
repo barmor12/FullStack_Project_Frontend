@@ -1,5 +1,12 @@
+import * as Google from "expo-auth-session/providers/google";
+import { useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "./config";
+import * as AuthSession from "expo-auth-session";
+
+const redirectUri = AuthSession.makeRedirectUri({
+  native: `your-scheme://redirect`,
+});
 
 export const storeTokens = async (
   accessToken: string,
@@ -156,4 +163,35 @@ export const clearTokens = async () => {
   } catch (error) {
     console.error("Failed to clear tokens:", error);
   }
+};
+
+export const useGoogleAuth = () => {
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: config.googleClientIdWeb,
+    iosClientId: config.googleClientIdIos,
+    androidClientId: config.googleClientIdAndroid,
+    redirectUri,
+  });
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { authentication } = response;
+      fetch(`${config.serverUrl}/auth/google/callback`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token: authentication?.accessToken }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          storeTokens(data.accessToken, data.refreshToken);
+          // מעבר למסך הבית
+          // navigation.navigate('Home'); // ודא שהניווט מוגדר נכון
+        })
+        .catch((error) => console.error("Error logging in with Google", error));
+    }
+  }, [response]);
+
+  return { promptAsync };
 };

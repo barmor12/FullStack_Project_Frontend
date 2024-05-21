@@ -3,7 +3,7 @@ import { View, StyleSheet, Text } from "react-native";
 import { TextInput, Button } from "react-native-paper";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../types";
-import { storeTokens } from "../authService";
+import { storeTokens, useGoogleAuth } from "../authService";
 import config from "../config";
 
 type LoginScreenNavigationProp = StackNavigationProp<
@@ -19,6 +19,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const { promptAsync } = useGoogleAuth(); // הוספת התחברות דרך גוגל
 
   const handleLogin = async () => {
     setError("");
@@ -80,6 +81,13 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.button}
       >
         Don't have an account? Sign Up
+      </Button>
+      <Button
+        mode="contained"
+        onPress={() => promptAsync()} // כפתור התחברות דרך גוגל
+        style={styles.button}
+      >
+        Sign in with Google
       </Button>
     </View>
   );
