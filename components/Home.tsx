@@ -6,13 +6,12 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   Modal,
   Dimensions,
   RefreshControl,
 } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, FontAwesome } from "@expo/vector-icons";
 import config from "../config";
 import { fetchWithAuth } from "../authService";
@@ -36,21 +35,14 @@ const Home = () => {
       const postsResponse = await fetchWithAuth(`${config.serverUrl}/post`);
       console.log(`Posts response status: ${postsResponse.status}`);
 
-      if (!userResponse.ok || !postsResponse.ok) {
+      if (userResponse.status !== 200 || postsResponse.status !== 200) {
         throw new Error(
           `Network response was not ok: user: ${userResponse.status}, posts: ${postsResponse.status}`
         );
       }
 
-      const userJson = await userResponse.json();
-      const postsJson = await postsResponse.json();
-
-      if (userResponse.status === 200 && postsResponse.status === 200) {
-        setUser(userJson);
-        setPosts(postsJson);
-      } else {
-        setError(userJson.error || "Failed to fetch data!");
-      }
+      setUser(userResponse.data);
+      setPosts(postsResponse.data);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
@@ -104,7 +96,7 @@ const Home = () => {
           method: "DELETE",
         }
       );
-      if (response.ok) {
+      if (response.status === 200) {
         setPosts((prevPosts) =>
           prevPosts.filter((post) => post._id !== postId)
         );
@@ -163,11 +155,12 @@ const Home = () => {
     </TouchableOpacity>
   );
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      <Text style={styles.headerText}>Welcome to the Home Page!</Text>
+      <Text style={styles.headerSubText}>
+        Here you can find all the latest posts from all users.
+      </Text>
       {user && (
         <TouchableOpacity
           style={styles.profileIconContainer}
@@ -180,12 +173,19 @@ const Home = () => {
           <Text style={styles.profileText}>Profile</Text>
         </TouchableOpacity>
       )}
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
       <FlatList
         data={posts}
         renderItem={renderItem}
         keyExtractor={(item) => item._id.toString()}
         contentContainerStyle={styles.list}
-        ListHeaderComponent={
+        ListHeaderComponent={renderHeader}
+        ListHeaderComponentStyle={styles.listHeader}
+        ListFooterComponent={
           error ? <Text style={styles.errorText}>{error}</Text> : null
         }
         refreshControl={
@@ -216,7 +216,7 @@ const Home = () => {
           </TouchableOpacity>
         </View>
       </Modal>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -229,9 +229,6 @@ const styles = StyleSheet.create({
   profileIconContainer: {
     flexDirection: "row",
     alignItems: "center",
-    position: "absolute",
-    top: 10,
-    left: 10,
   },
   profileIcon: {
     width: 40,
@@ -246,6 +243,9 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingBottom: 100,
+  },
+  listHeader: {
+    marginBottom: 20,
   },
   post: {
     marginBottom: 15,
@@ -351,6 +351,20 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: "#fff",
     fontSize: 16,
+  },
+  headerContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  headerSubText: {
+    fontSize: 16,
+    color: "#555",
+    textAlign: "center",
+    marginTop: 5,
   },
 });
 

@@ -8,6 +8,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import axios from "axios";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import Login from "./components/Login";
 import Home from "./components/Home";
 import Posts from "./components/Posts";
@@ -22,64 +23,22 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
 
 const HomeStack = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerStyle: {
-        backgroundColor: "#6200ee",
-      },
-      headerTintColor: "#fff",
-      headerTitleStyle: {
-        fontWeight: "bold",
-      },
-    }}
-  >
-    <Stack.Screen
-      name="HomeScreen"
-      component={Home}
-      options={{ title: "Home" }}
-    />
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="HomeScreen" component={Home} />
     <Stack.Screen name="PostDetails" component={PostDetails} />
     <Stack.Screen name="CreatePost" component={CreatePost} />
   </Stack.Navigator>
 );
 
 const UserProfileStack = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerStyle: {
-        backgroundColor: "#6200ee",
-      },
-      headerTintColor: "#fff",
-      headerTitleStyle: {
-        fontWeight: "bold",
-      },
-    }}
-  >
-    <Stack.Screen
-      name="UserProfileScreen"
-      component={UserProfile}
-      options={{ title: "User Profile" }}
-    />
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="UserProfileScreen" component={UserProfile} />
   </Stack.Navigator>
 );
 
 const CreatePostStack = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerStyle: {
-        backgroundColor: "#6200ee",
-      },
-      headerTintColor: "#fff",
-      headerTitleStyle: {
-        fontWeight: "bold",
-      },
-    }}
-  >
-    <Stack.Screen
-      name="CreatePostScreen"
-      component={CreatePost}
-      options={{ title: "Create Post" }}
-    />
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="CreatePostScreen" component={CreatePost} />
   </Stack.Navigator>
 );
 
@@ -139,18 +98,22 @@ const MainTabNavigator = () => (
     <Tab.Screen
       name="HomeTab"
       component={HomeStack}
-      options={{ title: "Home" }}
+      options={{ title: "Home", headerShown: false }}
     />
-    <Tab.Screen name="Posts" component={Posts} options={{ title: "Posts" }} />
+    <Tab.Screen
+      name="Posts"
+      component={Posts}
+      options={{ title: "Posts", headerShown: false }}
+    />
     <Tab.Screen
       name="CreatePostTab"
       component={CreatePostStack}
-      options={{ title: "Create Post" }}
+      options={{ title: "Create Post", headerShown: false }}
     />
     <Tab.Screen
       name="UserProfileTab"
       component={UserProfileStack}
-      options={{ title: "Profile" }}
+      options={{ title: "Profile", headerShown: false }}
     />
   </Tab.Navigator>
 );
@@ -204,36 +167,30 @@ const App = () => {
   }, []);
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Login"
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: "#6200ee",
-          },
-          headerTintColor: "#fff",
-          headerTitleStyle: {
-            fontWeight: "bold",
-          },
-        }}
-      >
-        <Stack.Screen
-          name="Login"
-          component={Login}
-          options={{ title: "Login" }}
-        />
-        <Stack.Screen
-          name="Register"
-          component={Register}
-          options={{ title: "Register" }}
-        />
-        <Stack.Screen
-          name="Main"
-          component={MainTabNavigator}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Login"
+          screenOptions={{ headerShown: false }}
+        >
+          <Stack.Screen
+            name="Login"
+            component={Login}
+            options={{ title: "Login", headerShown: false }}
+          />
+          <Stack.Screen
+            name="Register"
+            component={Register}
+            options={{ title: "Register", headerShown: false }}
+          />
+          <Stack.Screen
+            name="Main"
+            component={MainTabNavigator}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 };
 

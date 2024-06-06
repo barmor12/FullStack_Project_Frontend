@@ -19,6 +19,7 @@ import {
 import { RootStackParamList } from "../types";
 import config from "../config";
 import { getAccessToken } from "../authService";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type PostDetailsScreenRouteProp = RouteProp<RootStackParamList, "PostDetails">;
 
@@ -77,7 +78,7 @@ const PostDetails: React.FC = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : post ? (
@@ -134,7 +135,7 @@ const PostDetails: React.FC = () => {
           </TouchableOpacity>
         </View>
       </Modal>
-    </ScrollView>
+    </SafeAreaView>
   );
 };
 

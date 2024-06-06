@@ -5,12 +5,11 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  TextInput,
   FlatList,
   ActivityIndicator,
   Modal,
-  Button,
   RefreshControl,
+  Alert,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import {
@@ -23,6 +22,9 @@ import {
 } from "../authService";
 import config from "../config";
 import { Post } from "../types";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Button, TextInput, Card, Title, Paragraph } from "react-native-paper";
 
 const UserProfile: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -32,6 +34,8 @@ const UserProfile: React.FC = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [newName, setNewName] = useState<string>("");
+  const [newSurname, setNewSurname] = useState<string>("");
+  const [newNickname, setNewNickname] = useState<string>("");
   const [oldPassword, setOldPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -87,6 +91,8 @@ const UserProfile: React.FC = () => {
         if (response.status === 200) {
           setUser(json);
           setNewName(json.name);
+          setNewSurname(json.surname);
+          setNewNickname(json.nickname);
         } else {
           setError(json.error || "Failed to fetch user profile!");
         }
@@ -137,6 +143,8 @@ const UserProfile: React.FC = () => {
       setLoading(true);
       const formData = new FormData();
       formData.append("name", newName);
+      formData.append("surname", newSurname);
+      formData.append("nickname", newNickname);
       formData.append("email", user.email);
       if (user.profilePic) {
         formData.append("profilePic", {
@@ -153,6 +161,8 @@ const UserProfile: React.FC = () => {
       setUser((prevUser: any) => ({
         ...prevUser,
         name: newName,
+        surname: newSurname,
+        nickname: newNickname,
       }));
       setIsEditing(false);
       setOldPassword("");
@@ -186,6 +196,8 @@ const UserProfile: React.FC = () => {
       // save the new profile picture to the server
       const formData = new FormData();
       formData.append("name", user.name);
+      formData.append("surname", user.surname);
+      formData.append("nickname", user.nickname);
       formData.append("email", user.email);
       formData.append("profilePic", {
         uri: selectedImage,
@@ -196,75 +208,110 @@ const UserProfile: React.FC = () => {
     }
   };
 
+  const handleEditPost = (postId: string) => {
+    // Handle navigation to edit post screen
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    try {
+      const response = await fetchWithAuth(
+        `${config.serverUrl}/post/${postId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (response.ok) {
+        setPosts((prevPosts) =>
+          prevPosts.filter((post) => post._id !== postId)
+        );
+      } else {
+        setError("Failed to delete post");
+      }
+    } catch (error) {
+      setError("Network error or server is down");
+    }
+  };
+
   const renderItem = ({ item }: { item: Post }) => (
-    <View style={styles.post}>
-      <Text style={styles.postMessage}>{item.message}</Text>
+    <Card style={styles.post}>
+      <Card.Content>
+        <Title>{item.sender.name}</Title>
+        <Paragraph>{item.message}</Paragraph>
+      </Card.Content>
       {item.image && (
-        <Image
-          source={{ uri: `${config.serverUrl}${item.image}` }}
-          style={styles.postImage}
-        />
+        <Card.Cover source={{ uri: `${config.serverUrl}${item.image}` }} />
       )}
-    </View>
+      <Card.Actions>
+        <Button onPress={() => handleEditPost(item._id)}>Edit</Button>
+        <Button onPress={() => handleDeletePost(item._id)}>Delete</Button>
+      </Card.Actions>
+    </Card>
   );
 
+  const handleLogout = async () => {
+    await clearTokens();
+    // Handle navigation to login screen
+  };
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : user ? (
         <>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Image
-              source={{
-                uri: user.profilePic
-                  ? `${config.serverUrl}${user.profilePic}`
-                  : undefined,
-              }}
-              style={styles.profilePic}
-            />
-          </TouchableOpacity>
-          <Text style={styles.label}>Email:</Text>
-          <Text style={styles.value}>{user.email}</Text>
-          <Text style={styles.label}>Name:</Text>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => setModalVisible(true)}>
+              <Image
+                source={{
+                  uri: user.profilePic
+                    ? `${config.serverUrl}${user.profilePic}`
+                    : undefined,
+                }}
+                style={styles.profilePic}
+              />
+              <TouchableOpacity onPress={pickImage} style={styles.editIcon}>
+                <MaterialIcons name="edit" size={24} color="black" />
+              </TouchableOpacity>
+            </TouchableOpacity>
+            <Text style={styles.userName}>
+              {user.name} {user.surname}
+            </Text>
+          </View>
+          <View style={styles.details}>
+            <Text style={styles.label}>Email:</Text>
+            <Text style={styles.value}>{user.email}</Text>
+            <Text style={styles.label}>Nickname:</Text>
+            {isEditing ? (
+              <TextInput
+                style={styles.input}
+                value={newNickname}
+                onChangeText={setNewNickname}
+              />
+            ) : (
+              <Text style={styles.value}>{user.nickname}</Text>
+            )}
+          </View>
           {isEditing ? (
-            <>
-              <TextInput
-                style={styles.input}
-                value={newName}
-                onChangeText={setNewName}
-              />
-              <Text style={styles.label}>Old Password:</Text>
-              <TextInput
-                style={styles.input}
-                value={oldPassword}
-                onChangeText={setOldPassword}
-                secureTextEntry
-              />
-              <Text style={styles.label}>New Password:</Text>
-              <TextInput
-                style={styles.input}
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry
-              />
-              <Text style={styles.label}>Confirm New Password:</Text>
-              <TextInput
-                style={styles.input}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-              />
-            </>
+            <Button
+              mode="contained"
+              onPress={handleSaveProfile}
+              style={styles.button}
+            >
+              Save
+            </Button>
           ) : (
-            <Text style={styles.value}>{user.name}</Text>
+            <Button
+              mode="contained"
+              onPress={() => setIsEditing(true)}
+              style={styles.button}
+            >
+              Edit Profile
+            </Button>
           )}
-          {isEditing ? (
-            <Button title="Save" onPress={handleSaveProfile} />
-          ) : (
-            <Button title="Edit Profile" onPress={() => setIsEditing(true)} />
-          )}
-          <Text style={styles.postsHeader}>Your Posts:</Text>
+          <Button mode="contained" onPress={handleLogout} style={styles.button}>
+            Logout
+          </Button>
+          <Text style={styles.postsHeader}>My Posts:</Text>
           <FlatList
             data={posts}
             renderItem={renderItem}
@@ -292,26 +339,47 @@ const UserProfile: React.FC = () => {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: "#f0f2f5",
   },
+  header: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
   profilePic: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    alignSelf: "center",
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    borderWidth: 2,
+    borderColor: "#6200ee",
+    marginBottom: 10,
+  },
+  editIcon: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    padding: 5,
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  details: {
+    marginHorizontal: 20,
     marginBottom: 20,
   },
   label: {
     fontSize: 18,
     fontWeight: "bold",
+    color: "#6200ee",
   },
   value: {
     fontSize: 16,
@@ -323,6 +391,11 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 10,
     borderRadius: 5,
+    backgroundColor: "#fff",
+  },
+  button: {
+    marginHorizontal: 20,
+    marginBottom: 10,
   },
   errorText: {
     fontSize: 16,
@@ -333,27 +406,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     marginTop: 20,
-    marginBottom: 10,
+    marginHorizontal: 20,
   },
   post: {
-    padding: 10,
-    backgroundColor: "#fff",
-    borderRadius: 5,
-    marginBottom: 10,
+    margin: 20,
+    borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 5,
-    elevation: 5,
-  },
-  postMessage: {
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  postImage: {
-    width: "100%",
-    height: 200,
-    borderRadius: 5,
+    elevation: 3,
   },
   modalContainer: {
     flex: 1,

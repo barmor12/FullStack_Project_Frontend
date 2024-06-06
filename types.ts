@@ -4,11 +4,15 @@ export type RootStackParamList = {
   Home: undefined;
   Login: undefined;
   Register: undefined;
-  CreatePost: { postId?: string; onPostCreated?: (newPost: Post) => void }; // עדכון ל-CreatePost
+  CreatePost: {
+    postId?: string;
+    isEdit?: boolean;
+    onPostCreated?: (newPost: Post) => void;
+  };
   PostDetails: { postId: string };
   Posts: undefined;
   UserProfile: undefined;
-  Main: undefined; // הוספת Main
+  Main: undefined;
   CreatePostScreen: undefined;
   UserProfileScreen: undefined;
   HomeScreen: undefined;
@@ -61,5 +65,5 @@ export interface User {
   _id: string;
   name: string;
   profilePic: string;
-  email: string; // לפי הצורך
+  email: string;
 }

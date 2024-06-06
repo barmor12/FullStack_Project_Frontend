@@ -6,64 +6,49 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
-  ActivityIndicator,
+  Modal,
   RefreshControl,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { Entypo } from "@expo/vector-icons";
 import config from "../config";
-import { getAccessToken, fetchWithAuth } from "../authService";
-import { RootStackParamList } from "../types";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-
-type PostsScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  "PostDetails"
->;
+import { fetchWithAuth } from "../authService";
+import { HomeScreenNavigationProp, Post, User } from "../types";
 
 const Posts: React.FC = () => {
-  const [posts, setPosts] = useState<any[]>([]);
+  const navigation = useNavigation<HomeScreenNavigationProp>();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const navigation = useNavigation<PostsScreenNavigationProp>();
 
   const fetchPosts = async () => {
     setError("");
-    setLoading(true);
     try {
-      const token = await getAccessToken();
-      const response = await fetch(`${config.serverUrl}/post`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const userResponse = await fetchWithAuth(`${config.serverUrl}/auth/user`);
+      const postsResponse = await fetchWithAuth(
+        `${config.serverUrl}/post/user`
+      );
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+      if (userResponse.status !== 200 || postsResponse.status !== 200) {
+        throw new Error(
+          `Network response was not ok: user: ${userResponse.status}, posts: ${postsResponse.status}`
+        );
       }
 
-      const json = await response.json();
-      if (response.status === 200) {
-        setPosts(json);
-      } else {
-        setError(json.error || "Failed to fetch posts!");
-      }
+      setUser(userResponse.data);
+      setPosts(postsResponse.data);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
       } else {
         setError("Network error or server is down");
       }
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
     }
   };
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -73,10 +58,44 @@ const Posts: React.FC = () => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchPosts();
+    fetchPosts().finally(() => setRefreshing(false));
   };
 
-  const renderItem = ({ item }: { item: any }) => (
+  const handleEditPost = (postId: string) => {
+    navigation.navigate("CreatePost", { postId, isEdit: true });
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    try {
+      const response = await fetchWithAuth(
+        `${config.serverUrl}/post/${postId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (response.status === 200) {
+        setPosts((prevPosts) =>
+          prevPosts.filter((post) => post._id !== postId)
+        );
+      } else {
+        setError("Failed to delete post");
+      }
+    } catch (error) {
+      setError("Network error or server is down");
+    }
+  };
+
+  const openOptionsModal = (postId: string) => {
+    setSelectedPostId(postId);
+    setModalVisible(true);
+  };
+
+  const closeOptionsModal = () => {
+    setSelectedPostId(null);
+    setModalVisible(false);
+  };
+
+  const renderItem = ({ item }: { item: Post }) => (
     <TouchableOpacity
       onPress={() => navigation.navigate("PostDetails", { postId: item._id })}
     >
@@ -90,7 +109,7 @@ const Posts: React.FC = () => {
           ) : (
             <View style={styles.profilePicPlaceholder} />
           )}
-          <View>
+          <View style={styles.postHeaderText}>
             {item.sender && (
               <Text style={styles.sender}>{item.sender.name}</Text>
             )}
@@ -99,37 +118,80 @@ const Posts: React.FC = () => {
               {new Date(item.createdAt).toLocaleTimeString()}
             </Text>
           </View>
+          {user && item.sender && user._id === item.sender._id && (
+            <TouchableOpacity onPress={() => openOptionsModal(item._id)}>
+              <Entypo name="dots-three-horizontal" size={24} color="black" />
+            </TouchableOpacity>
+          )}
         </View>
         <Text style={styles.message}>{item.message}</Text>
         {item.image && (
-          <Image
-            source={{ uri: `${config.serverUrl}${item.image}` }}
-            style={styles.postImage}
-          />
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("PostDetails", { postId: item._id })
+            }
+          >
+            <Image
+              source={{ uri: `${config.serverUrl}${item.image}` }}
+              style={styles.postImage}
+            />
+          </TouchableOpacity>
         )}
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
-      {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
-      ) : (
-        <>
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          <FlatList
-            data={posts}
-            renderItem={renderItem}
-            keyExtractor={(item) => item._id}
-            contentContainerStyle={styles.list}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-          />
-        </>
-      )}
-    </View>
+    <SafeAreaView style={styles.container}>
+      <FlatList
+        data={posts}
+        renderItem={renderItem}
+        keyExtractor={(item) => item._id.toString()}
+        contentContainerStyle={styles.list}
+        ListHeaderComponent={
+          error ? <Text style={styles.errorText}>{error}</Text> : null
+        }
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      />
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        onRequestClose={closeOptionsModal}
+      >
+        <View style={styles.modalContainer}>
+          {selectedPostId && (
+            <View style={styles.optionsContainer}>
+              <TouchableOpacity
+                style={styles.optionButton}
+                onPress={() => {
+                  handleEditPost(selectedPostId);
+                  closeOptionsModal();
+                }}
+              >
+                <Text style={styles.optionText}>Edit Post</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.optionButton}
+                onPress={() => {
+                  handleDeletePost(selectedPostId);
+                  closeOptionsModal();
+                }}
+              >
+                <Text style={styles.optionText}>Delete Post</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.optionButton, styles.cancelButton]}
+                onPress={closeOptionsModal}
+              >
+                <Text style={styles.optionText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 };
 
@@ -137,9 +199,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f0f2f5",
+    padding: 10,
   },
   list: {
-    paddingBottom: 20,
+    paddingBottom: 100,
   },
   post: {
     marginBottom: 15,
@@ -170,6 +233,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#cccccc",
     marginRight: 10,
   },
+  postHeaderText: {
+    flex: 1,
+  },
   sender: {
     fontWeight: "bold",
     fontSize: 16,
@@ -193,6 +259,35 @@ const styles = StyleSheet.create({
     color: "red",
     marginBottom: 10,
     textAlign: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+  },
+  optionsContainer: {
+    width: 300,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  optionButton: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+  },
+  optionText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  cancelButton: {
+    borderBottomWidth: 0,
   },
 });
 

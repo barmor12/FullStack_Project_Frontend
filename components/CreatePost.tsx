@@ -9,14 +9,11 @@ import {
   Button,
   ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { createPost, updatePost, getAccessToken } from "../authService";
-import {
-  RootStackParamList,
-  CreatePostScreenNavigationProp,
-  Post,
-} from "../types";
+import { RootStackParamList, CreatePostScreenNavigationProp } from "../types";
 import config from "../config";
 
 type CreatePostScreenRouteProp = RouteProp<RootStackParamList, "CreatePost">;
@@ -24,7 +21,7 @@ type CreatePostScreenRouteProp = RouteProp<RootStackParamList, "CreatePost">;
 const CreatePost = () => {
   const navigation = useNavigation<CreatePostScreenNavigationProp>();
   const route = useRoute<CreatePostScreenRouteProp>();
-  const { postId, onPostCreated } = route.params || {};
+  const { postId, isEdit } = route.params || {};
 
   const [message, setMessage] = useState("");
   const [image, setImage] = useState<string | null>(null);
@@ -105,10 +102,6 @@ const CreatePost = () => {
         postResponse = await createPost(formData);
       }
 
-      if (onPostCreated) {
-        onPostCreated(postResponse);
-      }
-
       navigation.goBack();
     } catch (error) {
       if (error instanceof Error) {
@@ -122,7 +115,8 @@ const CreatePost = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.header}>{isEdit ? "Edit Post" : "Create Post"}</Text>
       <TextInput
         style={styles.input}
         placeholder="What's on your mind?"
@@ -139,7 +133,7 @@ const CreatePost = () => {
           <Text style={styles.buttonText}>{postId ? "Update" : "Post"}</Text>
         )}
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -149,6 +143,11 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: "center",
     backgroundColor: "#f0f2f5",
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
   },
   input: {
     height: 100,
