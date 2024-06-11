@@ -9,15 +9,19 @@ import Animated, {
 } from "react-native-reanimated";
 import axios from "axios";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import Login from "./components/Login";
-import Home from "./components/Home";
-import Posts from "./components/Posts";
-import Register from "./components/Register";
-import UserProfile from "./components/UserProfile";
-import CreatePost from "./components/CreatePost";
-import PostDetails from "./components/PostDetails";
-import { getAccessToken, refreshAccessToken, clearTokens } from "./authService";
-import { RootStackParamList } from "./types";
+import Login from "./src/Pages/Login";
+import Home from "./src/Pages/Home";
+import Posts from "./src/Pages/Posts";
+import Register from "./src/Pages/Register";
+import UserProfile from "./src/Pages/UserProfile";
+import CreatePost from "./src/Pages/CreatePost";
+import PostDetails from "./src/Pages/PostDetails";
+import {
+  getAccessToken,
+  refreshAccessToken,
+  clearTokens,
+} from "./src/services/authService";
+import { RootStackParamList } from "./src/Types/types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
@@ -103,7 +107,7 @@ const MainTabNavigator = () => (
     <Tab.Screen
       name="Posts"
       component={Posts}
-      options={{ title: "Posts", headerShown: false }}
+      options={{ title: "My Posts", headerShown: false }}
     />
     <Tab.Screen
       name="CreatePostTab"

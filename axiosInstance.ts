@@ -3,8 +3,8 @@ import {
   getAccessToken,
   refreshAccessToken,
   isTokenExpired,
-} from "./authService";
-import config from "./config";
+} from "./src/services/authService";
+import config from "./src/Config/config";
 
 // יצירת אינסטנס של Axios
 const axiosInstance = axios.create({

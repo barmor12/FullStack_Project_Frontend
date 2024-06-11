@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, Image, StyleSheet, Alert } from "react-native";
-import { getAccessToken, getUserPosts } from "../authService";
+import { getAccessToken, getUserPosts } from "../services/authService";
 import { Button } from "react-native-paper";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../types"; // Import the type from your types file

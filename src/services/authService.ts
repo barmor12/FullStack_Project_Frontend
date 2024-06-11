@@ -1,7 +1,7 @@
 import * as Google from "expo-auth-session/providers/google";
 import { useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import config from "./config";
+import config from "../Config/config";
 import * as AuthSession from "expo-auth-session";
 import axios from "axios";
 
@@ -44,6 +44,27 @@ export const getRefreshToken = async () => {
   }
 };
 
+export const isTokenExpired = (token: string) => {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join("")
+    );
+    const decoded = JSON.parse(jsonPayload);
+    const currentTime = Date.now() / 1000;
+    return decoded.exp < currentTime;
+  } catch (error) {
+    console.error("Failed to decode token:", error);
+    return true;
+  }
+};
+
 export const refreshAccessToken = async () => {
   try {
     const refreshToken = await getRefreshToken();
@@ -83,7 +104,7 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   async (config) => {
     let accessToken = await getAccessToken();
-    if (!accessToken) {
+    if (accessToken && isTokenExpired(accessToken)) {
       accessToken = await refreshAccessToken();
     }
     if (config.headers) {

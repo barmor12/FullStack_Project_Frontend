@@ -9,10 +9,10 @@ import {
 } from "react-native";
 import { TextInput, Button } from "react-native-paper";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../types";
-import config from "../config";
+import { RootStackParamList } from "../Types/types";
+import config from "../Config/config";
 import * as ImagePicker from "expo-image-picker";
-import { useGoogleAuth } from "../authService";
+import { useGoogleAuth } from "../services/authService";
 
 type RegisterScreenNavigationProp = StackNavigationProp<
   RootStackParamList,

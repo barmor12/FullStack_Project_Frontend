@@ -7,33 +7,31 @@ import {
   Image,
   TouchableOpacity,
   Modal,
-  Dimensions,
   RefreshControl,
 } from "react-native";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AntDesign, FontAwesome } from "@expo/vector-icons";
-import config from "../config";
-import { fetchWithAuth } from "../authService";
-import { HomeScreenNavigationProp, Post, User } from "../types";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { Entypo } from "@expo/vector-icons";
+import config from "../Config/config";
+import { fetchWithAuth } from "../services/authService";
+import { HomeScreenNavigationProp, Post, User } from "../Types/types";
 
-const Home = () => {
+const Posts: React.FC = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const [posts, setPosts] = useState<Post[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string>("");
   const [modalVisible, setModalVisible] = useState(false);
-  const [fullImageUri, setFullImageUri] = useState<string>("");
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
   const fetchPosts = async () => {
     setError("");
     try {
       const userResponse = await fetchWithAuth(`${config.serverUrl}/auth/user`);
-      console.log(`User response status: ${userResponse.status}`);
-
-      const postsResponse = await fetchWithAuth(`${config.serverUrl}/post`);
-      console.log(`Posts response status: ${postsResponse.status}`);
+      const postsResponse = await fetchWithAuth(
+        `${config.serverUrl}/post/user`
+      );
 
       if (userResponse.status !== 200 || postsResponse.status !== 200) {
         throw new Error(
@@ -63,29 +61,8 @@ const Home = () => {
     fetchPosts().finally(() => setRefreshing(false));
   };
 
-  const handleNavigateToUserProfile = () => {
-    navigation.navigate("UserProfile");
-  };
-
-  const handleNavigateToCreatePost = (postId?: string) => {
-    navigation.navigate("CreatePost", {
-      postId,
-    });
-  };
-
-  const handleNavigateToPostDetails = (postId: string) => {
-    navigation.navigate("PostDetails", {
-      postId,
-    });
-  };
-
-  const openFullImage = (uri: string) => {
-    setFullImageUri(uri);
-    setModalVisible(true);
-  };
-
   const handleEditPost = (postId: string) => {
-    handleNavigateToCreatePost(postId);
+    navigation.navigate("CreatePost", { postId, isEdit: true });
   };
 
   const handleDeletePost = async (postId: string) => {
@@ -108,8 +85,20 @@ const Home = () => {
     }
   };
 
+  const openOptionsModal = (postId: string) => {
+    setSelectedPostId(postId);
+    setModalVisible(true);
+  };
+
+  const closeOptionsModal = () => {
+    setSelectedPostId(null);
+    setModalVisible(false);
+  };
+
   const renderItem = ({ item }: { item: Post }) => (
-    <TouchableOpacity onPress={() => handleNavigateToPostDetails(item._id)}>
+    <TouchableOpacity
+      onPress={() => navigation.navigate("PostDetails", { postId: item._id })}
+    >
       <View style={styles.post}>
         <View style={styles.postHeader}>
           {item.sender && item.sender.profilePic ? (
@@ -130,20 +119,17 @@ const Home = () => {
             </Text>
           </View>
           {user && item.sender && user._id === item.sender._id && (
-            <View style={styles.postActions}>
-              <TouchableOpacity onPress={() => handleEditPost(item._id)}>
-                <FontAwesome name="edit" size={24} color="black" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeletePost(item._id)}>
-                <FontAwesome name="trash" size={24} color="red" />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity onPress={() => openOptionsModal(item._id)}>
+              <Entypo name="dots-three-horizontal" size={24} color="black" />
+            </TouchableOpacity>
           )}
         </View>
         <Text style={styles.message}>{item.message}</Text>
         {item.image && (
           <TouchableOpacity
-            onPress={() => openFullImage(`${config.serverUrl}${item.image}`)}
+            onPress={() =>
+              navigation.navigate("PostDetails", { postId: item._id })
+            }
           >
             <Image
               source={{ uri: `${config.serverUrl}${item.image}` }}
@@ -155,27 +141,6 @@ const Home = () => {
     </TouchableOpacity>
   );
 
-  const renderHeader = () => (
-    <View style={styles.headerContainer}>
-      <Text style={styles.headerText}>Welcome to the Home Page!</Text>
-      <Text style={styles.headerSubText}>
-        Here you can find all the latest posts from all users.
-      </Text>
-      {user && (
-        <TouchableOpacity
-          style={styles.profileIconContainer}
-          onPress={handleNavigateToUserProfile}
-        >
-          <Image
-            source={{ uri: `${config.serverUrl}${user.profilePic}` }}
-            style={styles.profileIcon}
-          />
-          <Text style={styles.profileText}>Profile</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
@@ -183,37 +148,47 @@ const Home = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item._id.toString()}
         contentContainerStyle={styles.list}
-        ListHeaderComponent={renderHeader}
-        ListHeaderComponentStyle={styles.listHeader}
-        ListFooterComponent={
+        ListHeaderComponent={
           error ? <Text style={styles.errorText}>{error}</Text> : null
         }
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       />
-      <View style={styles.newPostContainer}>
-        <TouchableOpacity
-          style={styles.newPostButton}
-          onPress={() => handleNavigateToCreatePost()}
-        >
-          <AntDesign name="pluscircleo" size={24} color="white" />
-          <Text style={styles.buttonText}>Create a New Post</Text>
-        </TouchableOpacity>
-      </View>
       <Modal
         visible={modalVisible}
         transparent={true}
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={closeOptionsModal}
       >
         <View style={styles.modalContainer}>
-          <Image source={{ uri: fullImageUri }} style={styles.fullImage} />
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setModalVisible(false)}
-          >
-            <Text style={styles.closeButtonText}>Close</Text>
-          </TouchableOpacity>
+          {selectedPostId && (
+            <View style={styles.optionsContainer}>
+              <TouchableOpacity
+                style={styles.optionButton}
+                onPress={() => {
+                  handleEditPost(selectedPostId);
+                  closeOptionsModal();
+                }}
+              >
+                <Text style={styles.optionText}>Edit Post</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.optionButton}
+                onPress={() => {
+                  handleDeletePost(selectedPostId);
+                  closeOptionsModal();
+                }}
+              >
+                <Text style={styles.optionText}>Delete Post</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.optionButton, styles.cancelButton]}
+                onPress={closeOptionsModal}
+              >
+                <Text style={styles.optionText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </Modal>
     </SafeAreaView>
@@ -226,26 +201,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f2f5",
     padding: 10,
   },
-  profileIconContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  profileIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  profileText: {
-    marginLeft: 8,
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "black",
-  },
   list: {
     paddingBottom: 100,
-  },
-  listHeader: {
-    marginBottom: 20,
   },
   post: {
     marginBottom: 15,
@@ -279,10 +236,6 @@ const styles = StyleSheet.create({
   postHeaderText: {
     flex: 1,
   },
-  postActions: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
   sender: {
     fontWeight: "bold",
     fontSize: 16,
@@ -302,28 +255,6 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 10,
   },
-  newPostContainer: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    paddingHorizontal: 10,
-    paddingBottom: 10,
-    backgroundColor: "#f0f2f5",
-  },
-  newPostButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#007bff",
-    paddingVertical: 10,
-    borderRadius: 5,
-  },
-  buttonText: {
-    marginLeft: 10,
-    fontSize: 16,
-    color: "white",
-    fontWeight: "bold",
-  },
   errorText: {
     color: "red",
     marginBottom: 10,
@@ -335,37 +266,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.8)",
   },
-  fullImage: {
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height,
-    resizeMode: "contain",
+  optionsContainer: {
+    width: 300,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 5,
   },
-  closeButton: {
-    position: "absolute",
-    top: 30,
-    right: 30,
-    backgroundColor: "rgba(0,0,0,0.5)",
+  optionButton: {
     padding: 10,
-    borderRadius: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
   },
-  closeButtonText: {
-    color: "#fff",
+  optionText: {
     fontSize: 16,
+    color: "#333",
   },
-  headerContainer: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  headerSubText: {
-    fontSize: 16,
-    color: "#555",
-    textAlign: "center",
-    marginTop: 5,
+  cancelButton: {
+    borderBottomWidth: 0,
   },
 });
 
-export default Home;
+export default Posts;

@@ -12,9 +12,16 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
-import { createPost, updatePost, getAccessToken } from "../authService";
-import { RootStackParamList, CreatePostScreenNavigationProp } from "../types";
-import config from "../config";
+import {
+  createPost,
+  updatePost,
+  getAccessToken,
+} from "../services/authService";
+import {
+  RootStackParamList,
+  CreatePostScreenNavigationProp,
+} from "../Types/types";
+import config from "../Config/config";
 
 type CreatePostScreenRouteProp = RouteProp<RootStackParamList, "CreatePost">;
 

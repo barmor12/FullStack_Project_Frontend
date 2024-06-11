@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import { TextInput, Button } from "react-native-paper";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../types";
-import { storeTokens, useGoogleAuth } from "../authService";
-import config from "../config";
+import { RootStackParamList } from "../Types/types";
+import { storeTokens, useGoogleAuth } from "../services/authService";
+import config from "../Config/config";
 
 type LoginScreenNavigationProp = StackNavigationProp<
   RootStackParamList,

@@ -16,9 +16,9 @@ import {
   useNavigation,
   useFocusEffect,
 } from "@react-navigation/native";
-import { RootStackParamList } from "../types";
-import config from "../config";
-import { getAccessToken } from "../authService";
+import { RootStackParamList } from "../Types/types";
+import config from "../Config/config";
+import { getAccessToken } from "../services/authService";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type PostDetailsScreenRouteProp = RouteProp<RootStackParamList, "PostDetails">;

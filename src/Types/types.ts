@@ -64,6 +64,8 @@ export interface Post {
 export interface User {
   _id: string;
   name: string;
-  profilePic: string;
+  surname: string; // הוספנו שדה surname
   email: string;
+  profilePic: string;
+  nickname: string; // הוספנו שדה nickname
 }
