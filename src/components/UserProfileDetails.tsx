@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TextInput } from "react-native";
 import { User } from "../Types/types";
-import styles from "../styles/styles";
+import styles from "../styles/UserProfileStyles";
 
 interface UserProfileDetailsProps {
   user: User;

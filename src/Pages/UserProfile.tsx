@@ -23,7 +23,7 @@ import ProfilePicture from "../components/ProfilePicture";
 import UserProfileDetails from "../components/UserProfileDetails";
 import UserProfileEdit from "../components/UserProfileEdit";
 import LogoutButton from "../components/LogoutButton";
-import styles from "../styles/styles";
+import styles from "../styles/UserProfileStyles";
 import { Button } from "react-native-paper";
 
 const UserProfile: React.FC = () => {
