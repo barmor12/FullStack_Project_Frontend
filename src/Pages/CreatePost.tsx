@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Button,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -22,6 +13,11 @@ import {
   CreatePostScreenNavigationProp,
 } from "../Types/types";
 import config from "../Config/config";
+import PostInput from "../components/PostInput";
+import PostImage from "../components/PostImage";
+import SavePostButton from "../components/SavePostButton";
+import styles from "../styles/CreatePostStyles";
+import { Button } from "react-native-paper"; // שימוש בכפתור של react-native-paper
 
 type CreatePostScreenRouteProp = RouteProp<RootStackParamList, "CreatePost">;
 
@@ -65,7 +61,23 @@ const CreatePost = () => {
       quality: 1,
     });
 
-    console.log(result);
+    if (!result.canceled && result.assets.length > 0) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission to access camera is required!");
+      return;
+    }
+
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
 
     if (!result.canceled && result.assets.length > 0) {
       setImage(result.assets[0].uri);
@@ -124,69 +136,34 @@ const CreatePost = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>{isEdit ? "Edit Post" : "Create Post"}</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="What's on your mind?"
-        value={message}
-        onChangeText={setMessage}
-      />
-      {image && <Image source={{ uri: image }} style={styles.image} />}
-      <Button title="Pick an image from gallery" onPress={pickImage} />
+      <PostInput value={message} onChangeText={setMessage} />
+      {image && <PostImage uri={image} />}
+      <View style={styles.imagePickerContainer}>
+        <Button
+          icon="image"
+          mode="contained"
+          onPress={pickImage}
+          style={styles.imageButton}
+        >
+          Pick an Image
+        </Button>
+        <Button
+          icon="camera"
+          mode="contained"
+          onPress={takePhoto}
+          style={styles.imageButton}
+        >
+          Take a Photo
+        </Button>
+      </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <TouchableOpacity style={styles.button} onPress={handleSavePost}>
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>{postId ? "Update" : "Post"}</Text>
-        )}
-      </TouchableOpacity>
+      <SavePostButton
+        loading={loading}
+        onPress={handleSavePost}
+        isEdit={!!postId}
+      />
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: "center",
-    backgroundColor: "#f0f2f5",
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  input: {
-    height: 100,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
-    backgroundColor: "#fff",
-    marginBottom: 20,
-  },
-  image: {
-    width: "100%",
-    height: 200,
-    borderRadius: 10,
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: "#007bff",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  errorText: {
-    color: "red",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-});
 
 export default CreatePost;
