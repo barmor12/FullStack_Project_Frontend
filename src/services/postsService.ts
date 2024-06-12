@@ -1,5 +1,5 @@
-import { fetchWithAuth } from "./authService";
 import config from "../Config/config";
+import { fetchWithAuth } from "./authService";
 import { Post, User } from "../Types/types";
 
 export const fetchUserData = async (): Promise<User> => {
@@ -23,6 +23,33 @@ export const deletePost = async (postId: string): Promise<boolean> => {
     method: "DELETE",
   });
   return response.status === 200;
+};
+
+export const handleUpdatePost = async (
+  postId: string,
+  message: string,
+  imageUri: string | null
+): Promise<boolean> => {
+  const formData = new FormData();
+  formData.append("message", message);
+  if (imageUri) {
+    formData.append("image", {
+      uri: imageUri,
+      type: "image/jpeg",
+      name: "photo.jpg",
+    } as any);
+  }
+
+  const response = await fetchWithAuth(`${config.serverUrl}/post/${postId}`, {
+    method: "PUT",
+    body: formData,
+  });
+
+  if (response.status !== 200) {
+    throw new Error("Failed to update post");
+  }
+
+  return true;
 };
 
 export const fetchUserPosts = async (

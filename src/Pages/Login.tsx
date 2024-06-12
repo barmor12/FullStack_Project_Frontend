@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text } from "react-native";
+import { View, Text, Image } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../Types/types";
 import { useGoogleAuth } from "../services/authService";
@@ -34,6 +34,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <Image source={require("../assets/logo.png")} style={styles.logo} />
       <LoginInput label="Email" value={email} onChangeText={setEmail} />
       <LoginInput
         label="Password"

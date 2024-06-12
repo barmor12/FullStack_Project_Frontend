@@ -17,6 +17,11 @@ const LoginStyles = StyleSheet.create({
   button: {
     marginTop: 10,
   },
+  logo: {
+    width: 200,
+    height: 200,
+    marginBottom: 32,
+  },
 });
 
 export default LoginStyles;
