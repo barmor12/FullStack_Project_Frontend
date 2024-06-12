@@ -1,4 +1,5 @@
 import { StackNavigationProp } from "@react-navigation/stack";
+import { RouteProp } from "@react-navigation/native";
 
 export type RootStackParamList = {
   Home: undefined;
@@ -18,35 +19,19 @@ export type RootStackParamList = {
   HomeScreen: undefined;
 };
 
-export type LoginScreenNavigationProp = StackNavigationProp<
+export type HomeScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
-  "Login"
->;
-export type RegisterScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "Register"
->;
-
-export type PostsScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "Posts"
+  "Home"
 >;
 
 export type CreatePostScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "CreatePost"
 >;
-export type PostDetailsScreenNavigationProp = StackNavigationProp<
+
+export type CreatePostScreenRouteProp = RouteProp<
   RootStackParamList,
-  "PostDetails"
->;
-export type HomeScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "Home"
->;
-export type UserProfileScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "UserProfile"
+  "CreatePost"
 >;
 
 export interface Post {
@@ -64,8 +49,8 @@ export interface Post {
 export interface User {
   _id: string;
   name: string;
-  surname: string; // הוספנו שדה surname
+  surname: string;
   email: string;
   profilePic: string;
-  nickname: string; // הוספנו שדה nickname
+  nickname: string;
 }

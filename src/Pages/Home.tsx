@@ -1,25 +1,19 @@
-import React, { useEffect, useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  Modal,
-  Dimensions,
-  RefreshControl,
-} from "react-native";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import React, { useState, useCallback } from "react";
+import { View, FlatList, RefreshControl, Text, Alert } from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import styles from "../styles/HomeStyles";
 import {
-  fetchUserData,
-  fetchPostsData,
-  deletePost,
-} from "../services/homeService";
-import { HomeScreenNavigationProp, Post, User } from "../Types/types";
+  fetchPosts,
+  handleDeletePost as deletePostService,
+} from "../services/postsService";
+import Header from "../components/Header";
 import PostItem from "../components/PostItem";
-import ProfileIcon from "../components/ProfileIcon";
 import NewPostButton from "../components/NewPostButton";
 import FullImageModal from "../components/FullImageModal";
-import styles from "../styles/HomeStyles";
+import ModalOptions from "../components/ModalOptions";
+import { Post, User } from "../Types/types";
+import { HomeScreenNavigationProp } from "../Types/types";
 
 const Home = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
@@ -27,50 +21,57 @@ const Home = () => {
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string>("");
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [fullImageUri, setFullImageUri] = useState<string>("");
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  const fetchPosts = async () => {
-    setError("");
-    try {
-      const userData = await fetchUserData();
-      const postsData = await fetchPostsData();
-      setUser(userData);
-      setPosts(postsData);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("Network error or server is down");
-      }
-    }
-  };
-
   useFocusEffect(
     useCallback(() => {
-      fetchPosts();
+      fetchPosts(setUser, setPosts, setError);
     }, [])
   );
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchPosts().finally(() => setRefreshing(false));
-  };
-
-  const handleNavigateToUserProfile = () => {
-    navigation.navigate("UserProfile");
-  };
-
-  const handleNavigateToCreatePost = (postId?: string) => {
-    navigation.navigate("CreatePost", {
-      postId,
-    });
+    fetchPosts(setUser, setPosts, setError).finally(() => setRefreshing(false));
   };
 
   const handleNavigateToPostDetails = (postId: string) => {
-    navigation.navigate("PostDetails", {
-      postId,
-    });
+    navigation.navigate("PostDetails", { postId });
+  };
+
+  const handleEditPost = () => {
+    if (selectedPostId) {
+      navigation.navigate("CreatePost", {
+        postId: selectedPostId,
+        isEdit: true,
+      });
+      setModalVisible(false); // סגור את המודל לאחר ניווט
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (selectedPostId) {
+      Alert.alert(
+        "Delete Post",
+        "Are you sure you want to delete this post?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Delete",
+            onPress: async () => {
+              await deletePostService(selectedPostId, setPosts, setError);
+              setModalVisible(false); // סגור את המודל לאחר מחיקה
+            },
+            style: "destructive",
+          },
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   const openFullImage = (uri: string) => {
@@ -78,23 +79,14 @@ const Home = () => {
     setModalVisible(true);
   };
 
-  const handleEditPost = (postId: string) => {
-    handleNavigateToCreatePost(postId);
+  const openOptionsModal = (postId: string) => {
+    setSelectedPostId(postId);
+    setModalVisible(true);
   };
 
-  const handleDeletePost = async (postId: string) => {
-    try {
-      const response = await deletePost(postId);
-      if (response) {
-        setPosts((prevPosts) =>
-          prevPosts.filter((post) => post._id !== postId)
-        );
-      } else {
-        setError("Failed to delete post");
-      }
-    } catch (error) {
-      setError("Network error or server is down");
-    }
+  const closeOptionsModal = () => {
+    setSelectedPostId(null);
+    setModalVisible(false);
   };
 
   const renderItem = ({ item }: { item: Post }) => (
@@ -102,25 +94,11 @@ const Home = () => {
       item={item}
       user={user}
       handleNavigateToPostDetails={handleNavigateToPostDetails}
-      handleEditPost={handleEditPost}
-      handleDeletePost={handleDeletePost}
+      handleEditPost={() => openOptionsModal(item._id)}
+      handleDeletePost={() => openOptionsModal(item._id)}
       openFullImage={openFullImage}
+      openOptionsModal={openOptionsModal}
     />
-  );
-
-  const renderHeader = () => (
-    <View style={styles.headerContainer}>
-      <Text style={styles.headerText}>Welcome to the Home Page!</Text>
-      <Text style={styles.headerSubText}>
-        Here you can find all the latest posts from all users.
-      </Text>
-      {user && (
-        <ProfileIcon
-          user={user}
-          handleNavigateToUserProfile={handleNavigateToUserProfile}
-        />
-      )}
-    </View>
   );
 
   return (
@@ -130,7 +108,7 @@ const Home = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item._id.toString()}
         contentContainerStyle={styles.list}
-        ListHeaderComponent={renderHeader}
+        ListHeaderComponent={<Header user={user} />}
         ListHeaderComponentStyle={styles.listHeader}
         ListFooterComponent={
           error ? <Text style={styles.errorText}>{error}</Text> : null
@@ -139,11 +117,17 @@ const Home = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       />
-      <NewPostButton handleNavigateToCreatePost={handleNavigateToCreatePost} />
+      <NewPostButton />
       <FullImageModal
         modalVisible={modalVisible}
-        setModalVisible={setModalVisible}
         fullImageUri={fullImageUri}
+        setModalVisible={setModalVisible}
+      />
+      <ModalOptions
+        visible={modalVisible}
+        closeOptionsModal={closeOptionsModal}
+        handleEditPost={handleEditPost}
+        handleDeletePost={handleDeletePost}
       />
     </SafeAreaView>
   );

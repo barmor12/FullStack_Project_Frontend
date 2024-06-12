@@ -1,25 +1,22 @@
 import React from "react";
-import {
-  View,
-  Image,
-  Modal,
-  TouchableOpacity,
-  Text,
-  Dimensions,
-} from "react-native";
+import { View, Image, TouchableOpacity, Modal, Text } from "react-native";
 import styles from "../styles/HomeStyles";
 
-type FullImageModalProps = {
+interface FullImageModalProps {
   modalVisible: boolean;
-  setModalVisible: (visible: boolean) => void;
   fullImageUri: string;
-};
+  setModalVisible: (visible: boolean) => void;
+}
 
 const FullImageModal: React.FC<FullImageModalProps> = ({
   modalVisible,
-  setModalVisible,
   fullImageUri,
+  setModalVisible,
 }) => {
+  if (!fullImageUri) {
+    return null;
+  }
+
   return (
     <Modal
       visible={modalVisible}
@@ -28,7 +25,6 @@ const FullImageModal: React.FC<FullImageModalProps> = ({
     >
       <View style={styles.modalContainer}>
         <Image source={{ uri: fullImageUri }} style={styles.fullImage} />
-
         <TouchableOpacity
           style={styles.closeButton}
           onPress={() => setModalVisible(false)}

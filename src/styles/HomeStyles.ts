@@ -1,6 +1,8 @@
 import { StyleSheet, Dimensions } from "react-native";
 
-const HomeStyles = StyleSheet.create({
+const { width, height } = Dimensions.get("window");
+
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f0f2f5",
@@ -116,8 +118,8 @@ const HomeStyles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.8)",
   },
   fullImage: {
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height,
+    width: width,
+    height: height,
     resizeMode: "contain",
   },
   closeButton: {
@@ -148,4 +150,4 @@ const HomeStyles = StyleSheet.create({
   },
 });
 
-export default HomeStyles;
+export default styles;

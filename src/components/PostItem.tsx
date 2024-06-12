@@ -1,9 +1,9 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome, Entypo } from "@expo/vector-icons";
 import config from "../Config/config";
 import { Post, User } from "../Types/types";
-import styles from "../styles/HomeStyles";
+import styles from "../styles/PostItemStyles";
 
 type PostItemProps = {
   item: Post;
@@ -12,6 +12,7 @@ type PostItemProps = {
   handleEditPost: (postId: string) => void;
   handleDeletePost: (postId: string) => void;
   openFullImage: (uri: string) => void;
+  openOptionsModal: (postId: string) => void;
 };
 
 const PostItem: React.FC<PostItemProps> = ({
@@ -21,6 +22,7 @@ const PostItem: React.FC<PostItemProps> = ({
   handleEditPost,
   handleDeletePost,
   openFullImage,
+  openOptionsModal,
 }) => {
   return (
     <TouchableOpacity onPress={() => handleNavigateToPostDetails(item._id)}>
@@ -44,14 +46,9 @@ const PostItem: React.FC<PostItemProps> = ({
             </Text>
           </View>
           {user && item.sender && user._id === item.sender._id && (
-            <View style={styles.postActions}>
-              <TouchableOpacity onPress={() => handleEditPost(item._id)}>
-                <FontAwesome name="edit" size={24} color="black" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeletePost(item._id)}>
-                <FontAwesome name="trash" size={24} color="red" />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity onPress={() => openOptionsModal(item._id)}>
+              <Entypo name="dots-three-horizontal" size={24} color="black" />
+            </TouchableOpacity>
           )}
         </View>
         <Text style={styles.message}>{item.message}</Text>

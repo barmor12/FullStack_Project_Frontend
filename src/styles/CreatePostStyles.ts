@@ -1,31 +1,29 @@
 import { StyleSheet } from "react-native";
 
-const CreatePostStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    justifyContent: "center",
-    backgroundColor: "#f0f2f5",
+    padding: 16,
+    backgroundColor: "#fff",
   },
   header: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
+    marginBottom: 16,
   },
   imagePickerContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 20,
+    justifyContent: "space-between",
+    marginBottom: 16,
   },
   imageButton: {
-    width: "45%",
+    flex: 1,
+    marginHorizontal: 8,
   },
   errorText: {
     color: "red",
-    marginBottom: 10,
-    textAlign: "center",
+    marginBottom: 16,
   },
 });
 
-export default CreatePostStyles;
+export default styles;

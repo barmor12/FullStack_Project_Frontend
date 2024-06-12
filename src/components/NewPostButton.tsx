@@ -1,15 +1,20 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import styles from "../styles/HomeStyles";
+import { HomeScreenNavigationProp } from "../Types/types";
 
-type NewPostButtonProps = {
-  handleNavigateToCreatePost: () => void;
-};
+const NewPostButton = () => {
+  const navigation = useNavigation<HomeScreenNavigationProp>();
 
-const NewPostButton: React.FC<NewPostButtonProps> = ({
-  handleNavigateToCreatePost,
-}) => {
+  const handleNavigateToCreatePost = () => {
+    navigation.navigate({
+      name: "CreatePost",
+      params: {},
+    });
+  };
+
   return (
     <View style={styles.newPostContainer}>
       <TouchableOpacity

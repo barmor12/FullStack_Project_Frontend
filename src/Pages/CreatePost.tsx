@@ -2,15 +2,15 @@ import React, { useState, useEffect } from "react";
 import { View, Text, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import {
   createPost,
   updatePost,
   getAccessToken,
 } from "../services/authService";
 import {
-  RootStackParamList,
   CreatePostScreenNavigationProp,
+  CreatePostScreenRouteProp,
 } from "../Types/types";
 import config from "../Config/config";
 import PostInput from "../components/PostInput";
@@ -18,8 +18,6 @@ import PostImage from "../components/PostImage";
 import SavePostButton from "../components/SavePostButton";
 import styles from "../styles/CreatePostStyles";
 import { Button } from "react-native-paper"; // שימוש בכפתור של react-native-paper
-
-type CreatePostScreenRouteProp = RouteProp<RootStackParamList, "CreatePost">;
 
 const CreatePost = () => {
   const navigation = useNavigation<CreatePostScreenNavigationProp>();
