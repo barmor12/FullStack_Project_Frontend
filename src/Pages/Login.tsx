@@ -1,10 +1,14 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Text } from "react-native";
-import { TextInput, Button } from "react-native-paper";
+import { View, Text } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../Types/types";
-import { storeTokens, useGoogleAuth } from "../services/authService";
-import config from "../Config/config";
+import { useGoogleAuth } from "../services/authService";
+import { handleLogin } from "../services/loginService";
+import LoginInput from "../components/LoginInput";
+import LoginButton from "../components/LoginButton";
+import RegisterButton from "../components/RegisterButton";
+import GoogleSignInButton from "../components/GoogleSignInButton";
+import styles from "../styles/LoginStyles";
 
 type LoginScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -19,97 +23,30 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const { promptAsync } = useGoogleAuth(); // הוספת התחברות דרך גוגל
+  const { promptAsync } = useGoogleAuth();
 
-  const handleLogin = async () => {
-    setError("");
-    try {
-      const response = await fetch(`${config.serverUrl}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const json = await response.json();
-      if (response.status === 200) {
-        await storeTokens(json.accessToken, json.refreshToken);
-        navigation.navigate("Main");
-        console.log("Login successful!");
-      } else {
-        setError(json.error || "Login failed!");
-      }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("Network error or server is down");
-      }
+  const handleLoginPress = async () => {
+    const loginError = await handleLogin(email, password, navigation);
+    if (loginError) {
+      setError(loginError);
     }
   };
 
   return (
     <View style={styles.container}>
-      <TextInput
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        mode="outlined"
-        style={styles.input}
-        autoCapitalize="none"
-      />
-      <TextInput
+      <LoginInput label="Email" value={email} onChangeText={setEmail} />
+      <LoginInput
         label="Password"
         value={password}
         onChangeText={setPassword}
-        mode="outlined"
         secureTextEntry
-        style={styles.input}
       />
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <Button mode="contained" onPress={handleLogin} style={styles.button}>
-        Log In
-      </Button>
-      <Button
-        mode="text"
-        onPress={() => navigation.navigate("Register")}
-        style={styles.button}
-      >
-        Don't have an account? Sign Up
-      </Button>
-      <Button
-        mode="contained"
-        onPress={() => promptAsync()} // כפתור התחברות דרך גוגל
-        style={styles.button}
-      >
-        Sign in with Google
-      </Button>
+      <LoginButton onPress={handleLoginPress} />
+      <RegisterButton onPress={() => navigation.navigate("Register")} />
+      <GoogleSignInButton onPress={() => promptAsync()} />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-  },
-  input: {
-    marginBottom: 10,
-  },
-  errorText: {
-    fontSize: 16,
-    color: "red",
-    marginBottom: 10,
-  },
-  button: {
-    marginTop: 10,
-  },
-});
 
 export default LoginScreen;
