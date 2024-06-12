@@ -15,25 +15,6 @@ const ModalOptions: React.FC<ModalOptionsProps> = ({
   handleEditPost,
   handleDeletePost,
 }) => {
-  const confirmDelete = () => {
-    Alert.alert(
-      "Delete Post",
-      "Are you sure you want to delete this post?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Delete",
-          onPress: handleDeletePost,
-          style: "destructive",
-        },
-      ],
-      { cancelable: true }
-    );
-  };
-
   return (
     <Modal
       visible={visible}
@@ -58,7 +39,10 @@ const ModalOptions: React.FC<ModalOptionsProps> = ({
           >
             <Text style={styles.optionText}>Edit Post</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.optionButton} onPress={confirmDelete}>
+          <TouchableOpacity
+            style={styles.optionButton}
+            onPress={handleDeletePost}
+          >
             <Text style={styles.optionText}>Delete Post</Text>
           </TouchableOpacity>
         </View>

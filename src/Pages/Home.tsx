@@ -20,7 +20,8 @@ const Home = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string>("");
-  const [modalVisible, setModalVisible] = useState(false);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [optionsModalVisible, setOptionsModalVisible] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [fullImageUri, setFullImageUri] = useState<string>("");
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -46,11 +47,11 @@ const Home = () => {
         postId: selectedPostId,
         isEdit: true,
       });
-      setModalVisible(false); // סגור את המודל לאחר ניווט
+      closeOptionsModal();
     }
   };
 
-  const handleDeletePost = async () => {
+  const confirmDeletePost = () => {
     if (selectedPostId) {
       Alert.alert(
         "Delete Post",
@@ -62,10 +63,7 @@ const Home = () => {
           },
           {
             text: "Delete",
-            onPress: async () => {
-              await deletePostService(selectedPostId, setPosts, setError);
-              setModalVisible(false); // סגור את המודל לאחר מחיקה
-            },
+            onPress: handleDeletePost,
             style: "destructive",
           },
         ],
@@ -74,19 +72,26 @@ const Home = () => {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (selectedPostId) {
+      await deletePostService(selectedPostId, setPosts, setError);
+      closeOptionsModal();
+    }
+  };
+
   const openFullImage = (uri: string) => {
     setFullImageUri(uri);
-    setModalVisible(true);
+    setImageModalVisible(true);
   };
 
   const openOptionsModal = (postId: string) => {
     setSelectedPostId(postId);
-    setModalVisible(true);
+    setOptionsModalVisible(true);
   };
 
   const closeOptionsModal = () => {
     setSelectedPostId(null);
-    setModalVisible(false);
+    setOptionsModalVisible(false);
   };
 
   const renderItem = ({ item }: { item: Post }) => (
@@ -119,15 +124,15 @@ const Home = () => {
       />
       <NewPostButton />
       <FullImageModal
-        modalVisible={modalVisible}
+        modalVisible={imageModalVisible}
         fullImageUri={fullImageUri}
-        setModalVisible={setModalVisible}
+        setModalVisible={setImageModalVisible}
       />
       <ModalOptions
-        visible={modalVisible}
+        visible={optionsModalVisible}
         closeOptionsModal={closeOptionsModal}
         handleEditPost={handleEditPost}
-        handleDeletePost={handleDeletePost}
+        handleDeletePost={confirmDeletePost} // קוראים לפונקציה שמאשרת את המחיקה
       />
     </SafeAreaView>
   );
