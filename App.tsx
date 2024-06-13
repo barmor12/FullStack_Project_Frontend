@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -7,7 +7,6 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from "react-native-reanimated";
-import axios from "axios";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Login from "./src/Pages/Login";
 import Home from "./src/Pages/Home";
@@ -16,12 +15,9 @@ import Register from "./src/Pages/Register";
 import UserProfile from "./src/Pages/UserProfile";
 import CreatePost from "./src/Pages/CreatePost";
 import PostDetails from "./src/Pages/PostDetails";
-import {
-  getAccessToken,
-  refreshAccessToken,
-  clearTokens,
-} from "./src/services/authService";
 import { RootStackParamList } from "./src/Types/types";
+import { getAccessToken, isTokenExpired } from "./src/services/authService";
+import axiosInstance from "./src/services/axiosInstance";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
@@ -123,58 +119,26 @@ const MainTabNavigator = () => (
 );
 
 const App = () => {
+  const [initialRoute, setInitialRoute] = useState<"Login" | "Main">("Login");
+
   useEffect(() => {
-    const requestInterceptor = axios.interceptors.request.use(
-      async (config) => {
-        let token = await getAccessToken();
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
+    const checkToken = async () => {
+      const token = await getAccessToken();
+      if (token && !isTokenExpired(token)) {
+        setInitialRoute("Main");
+      } else {
+        setInitialRoute("Login");
       }
-    );
-
-    const responseInterceptor = axios.interceptors.response.use(
-      (response) => {
-        return response;
-      },
-      async (error) => {
-        const originalRequest = error.config;
-        if (error.response.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
-          try {
-            const newAccessToken = await refreshAccessToken();
-            axios.defaults.headers.common[
-              "Authorization"
-            ] = `Bearer ${newAccessToken}`;
-            originalRequest.headers[
-              "Authorization"
-            ] = `Bearer ${newAccessToken}`;
-            return axios(originalRequest);
-          } catch (err) {
-            clearTokens();
-            // handle error gracefully
-            return Promise.reject(err);
-          }
-        }
-        return Promise.reject(error);
-      }
-    );
-
-    return () => {
-      axios.interceptors.request.eject(requestInterceptor);
-      axios.interceptors.response.eject(responseInterceptor);
     };
+
+    checkToken();
   }, []);
 
   return (
     <SafeAreaProvider>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Login"
+          initialRouteName={initialRoute}
           screenOptions={{ headerShown: false }}
         >
           <Stack.Screen
