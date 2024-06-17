@@ -11,6 +11,7 @@ const styles = StyleSheet.create({
   profileIconContainer: {
     flexDirection: "row",
     alignItems: "center",
+    marginTop: 20, // Added margin to separate from the header
   },
   profileIcon: {
     width: 40,
@@ -137,16 +138,31 @@ const styles = StyleSheet.create({
   headerContainer: {
     alignItems: "center",
     marginBottom: 20,
+    padding: 15,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 5,
   },
   headerText: {
     fontSize: 24,
     fontWeight: "bold",
+    color: "#333",
   },
   headerSubText: {
     fontSize: 16,
     color: "#555",
     textAlign: "center",
     marginTop: 5,
+  },
+  userContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
   },
 });
 

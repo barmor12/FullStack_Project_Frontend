@@ -132,7 +132,7 @@ const Home = () => {
         visible={optionsModalVisible}
         closeOptionsModal={closeOptionsModal}
         handleEditPost={handleEditPost}
-        handleDeletePost={confirmDeletePost} // קוראים לפונקציה שמאשרת את המחיקה
+        handleDeletePost={confirmDeletePost}
       />
     </SafeAreaView>
   );

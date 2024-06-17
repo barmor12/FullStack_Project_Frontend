@@ -18,6 +18,14 @@ export const fetchPostsData = async (): Promise<Post[]> => {
   return response.data;
 };
 
+export const fetchPostData = async (postId: string): Promise<Post> => {
+  const response = await fetchWithAuth(`${config.serverUrl}/post/${postId}`);
+  if (response.status !== 200) {
+    throw new Error(`Failed to fetch post data: ${response.statusText}`);
+  }
+  return response.data;
+};
+
 export const deletePost = async (postId: string): Promise<boolean> => {
   const response = await fetchWithAuth(`${config.serverUrl}/post/${postId}`, {
     method: "DELETE",
