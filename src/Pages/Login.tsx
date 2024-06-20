@@ -4,9 +4,9 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../Types/types";
 import { useGoogleAuth } from "../services/authService";
 import { handleLogin } from "../services/loginService";
-import LoginInput from "../components/LoginInput";
-import LoginButton from "../components/LoginButton";
-import RegisterButton from "../components/RegisterButton";
+import LoginInput from "../components//LoginComponents/LoginInput";
+import LoginButton from "../components/LoginComponents/LoginButton";
+import RegisterButton from "../components/LoginComponents/RegisterButton";
 import GoogleSignInButton from "../components/GoogleSignInButton";
 import styles from "../styles/LoginStyles";
 

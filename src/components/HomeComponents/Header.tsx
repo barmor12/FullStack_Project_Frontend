@@ -1,9 +1,9 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
-import { HomeScreenNavigationProp, User } from "../Types/types";
+import { HomeScreenNavigationProp, User } from "../../Types/types";
 import { useNavigation } from "@react-navigation/native";
-import styles from "../styles/HomeStyles";
-import config from "../Config/config";
+import styles from "../../styles/HomeStyles";
+import config from "../../Config/config";
 
 interface HeaderProps {
   user: User | null;

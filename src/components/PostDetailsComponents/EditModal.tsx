@@ -9,7 +9,7 @@ import {
   Modal,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import styles from "../styles/PostDetailsStyles";
+import styles from "../../styles/PostDetailsStyles";
 
 const EditModal = ({
   visible,

@@ -13,11 +13,11 @@ import {
   CreatePostScreenRouteProp,
 } from "../Types/types";
 import config from "../Config/config";
-import PostInput from "../components/PostInput";
-import PostImage from "../components/PostImage";
-import SavePostButton from "../components/SavePostButton";
+import PostInput from "../components/CreatePostComponents/PostInput";
+import PostImage from "../components/CreatePostComponents/PostImage";
+import SavePostButton from "../components/CreatePostComponents/SavePostButton";
 import styles from "../styles/CreatePostStyles";
-import { Button } from "react-native-paper"; // שימוש בכפתור של react-native-paper
+import { Button } from "react-native-paper";
 
 const CreatePost = () => {
   const navigation = useNavigation<CreatePostScreenNavigationProp>();

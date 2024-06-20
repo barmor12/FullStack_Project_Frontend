@@ -1,8 +1,8 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
-import { User } from "../Types/types";
-import styles from "../styles/HomeStyles";
-import config from "../Config/config";
+import { User } from "../../Types/types";
+import styles from "../../styles/HomeStyles";
+import config from "../../Config/config";
 
 type ProfileIconProps = {
   user: User;

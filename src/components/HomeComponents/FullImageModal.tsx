@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Image, TouchableOpacity, Modal, Text } from "react-native";
-import styles from "../styles/HomeStyles";
+import styles from "../../styles/HomeStyles";
 
 interface FullImageModalProps {
   modalVisible: boolean;

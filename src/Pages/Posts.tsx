@@ -17,8 +17,8 @@ import {
   fetchUserPosts,
   handleDeletePost as deletePostService,
 } from "../services/postsService";
-import PostItem from "../components/PostItem";
-import ModalOptions from "../components/ModalOptions";
+import PostItem from "../components/HomeComponents/PostItem";
+import ModalOptions from "../components/HomeComponents/ModalOptions";
 import styles from "../styles/PostsStyles";
 
 const Posts: React.FC = () => {

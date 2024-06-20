@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal, View, Text, TouchableOpacity, Alert } from "react-native";
-import styles from "../styles/ModalOptionsStyles";
+import styles from "../../styles/ModalOptionsStyles";
 
 type ModalOptionsProps = {
   visible: boolean;

@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "react-native-paper";
-import styles from "../styles/UserProfileStyles";
+import styles from "../../styles/UserProfileStyles";
 
 interface LogoutButtonProps {
   handleLogout: () => void;

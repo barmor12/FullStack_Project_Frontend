@@ -1,9 +1,9 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { FontAwesome, Entypo } from "@expo/vector-icons";
-import config from "../Config/config";
-import { Post, User } from "../Types/types";
-import styles from "../styles/PostItemStyles";
+import config from "../../Config/config";
+import { Post, User } from "../../Types/types";
+import styles from "../../styles/PostItemStyles";
 
 type PostItemProps = {
   item: Post;

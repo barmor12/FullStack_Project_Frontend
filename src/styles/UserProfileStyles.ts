@@ -28,10 +28,23 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 24,
     fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
   },
   details: {
     marginHorizontal: 20,
     marginBottom: 20,
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   label: {
     fontSize: 18,
@@ -53,6 +66,7 @@ const styles = StyleSheet.create({
   button: {
     marginHorizontal: 20,
     marginBottom: 10,
+    backgroundColor: "#6200ee",
   },
   errorText: {
     fontSize: 16,

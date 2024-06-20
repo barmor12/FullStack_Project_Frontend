@@ -16,10 +16,10 @@ import {
   handleUpdatePost,
 } from "../services/postsService";
 import { SafeAreaView } from "react-native-safe-area-context";
-import PostHeader from "../components/PostHeader";
-import PostContent from "../components/PostContent";
-import EditOptions from "../components/EditOptions";
-import EditModal from "../components/EditModal";
+import PostHeader from "../components/PostDetailsComponents/PostHeader";
+import PostContent from "../components/PostDetailsComponents/PostContent";
+import EditOptions from "../components/PostDetailsComponents/EditOptions";
+import EditModal from "../components/PostDetailsComponents/EditModal";
 import styles from "../styles/PostDetailsStyles";
 
 type PostDetailsScreenRouteProp = RouteProp<RootStackParamList, "PostDetails">;

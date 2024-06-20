@@ -7,11 +7,11 @@ import {
   fetchPosts,
   handleDeletePost as deletePostService,
 } from "../services/postsService";
-import Header from "../components/Header";
-import PostItem from "../components/PostItem";
-import NewPostButton from "../components/NewPostButton";
-import FullImageModal from "../components/FullImageModal";
-import ModalOptions from "../components/ModalOptions";
+import Header from "../components/HomeComponents/Header";
+import PostItem from "../components/HomeComponents/PostItem";
+import NewPostButton from "../components/HomeComponents/NewPostButton";
+import FullImageModal from "../components/HomeComponents/FullImageModal";
+import ModalOptions from "../components/HomeComponents/ModalOptions";
 import { Post, User } from "../Types/types";
 import { HomeScreenNavigationProp } from "../Types/types";
 

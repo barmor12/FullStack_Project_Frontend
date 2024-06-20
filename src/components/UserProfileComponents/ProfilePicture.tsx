@@ -1,8 +1,8 @@
 import React from "react";
 import { View, Image, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import config from "../Config/config";
-import styles from "../styles/UserProfileStyles";
+import config from "../../Config/config";
+import styles from "../../styles/UserProfileStyles";
 
 interface ProfilePictureProps {
   profilePic: string | null;

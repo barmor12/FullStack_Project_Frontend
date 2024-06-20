@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Image } from "react-native";
-import config from "../Config/config";
-import styles from "../styles/PostDetailsStyles";
+import config from "../../Config/config";
+import styles from "../../styles/PostDetailsStyles";
 
 const PostHeader = ({
   sender,

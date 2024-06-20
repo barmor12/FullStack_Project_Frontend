@@ -2,29 +2,32 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   ActivityIndicator,
-  Modal,
-  Alert,
-  Text,
   ScrollView,
   RefreshControl,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
+import { Button } from "react-native-paper";
+
 import {
   getAccessToken,
-  updateUserProfile,
   refreshAccessToken,
   clearTokens,
 } from "../services/authService";
 import config from "../Config/config";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList, User } from "../Types/types";
-import ProfilePicture from "../components/ProfilePicture";
-import UserProfileDetails from "../components/UserProfileDetails";
-import UserProfileEdit from "../components/UserProfileEdit";
-import LogoutButton from "../components/LogoutButton";
 import styles from "../styles/UserProfileStyles";
-import { Button } from "react-native-paper";
+
+import ProfilePicture from "../components/UserProfileComponents/ProfilePicture";
+import UserProfileDetails from "../components/UserProfileComponents/UserProfileDetails";
+import UserProfileEdit from "../components/UserProfileComponents/UserProfileEdit";
+import LogoutButton from "../components/UserProfileComponents/LogoutButton";
+import FullImageModal from "../components/HomeComponents/FullImageModal";
 
 const UserProfile: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -32,13 +35,12 @@ const UserProfile: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [newName, setNewName] = useState<string>("");
-  const [newSurname, setNewSurname] = useState<string>("");
   const [newNickname, setNewNickname] = useState<string>("");
   const [oldPassword, setOldPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [imageModalVisible, setImageModalVisible] = useState<boolean>(false);
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
@@ -90,8 +92,6 @@ const UserProfile: React.FC = () => {
         const json = JSON.parse(responseText);
         if (response.status === 200) {
           setUser(json);
-          setNewName(json.name);
-          setNewSurname(json.surname);
           setNewNickname(json.nickname);
         } else {
           setError(json.error || "Failed to fetch user profile!");
@@ -125,8 +125,6 @@ const UserProfile: React.FC = () => {
     try {
       setLoading(true);
       const formData = new FormData();
-      formData.append("name", newName);
-      formData.append("surname", newSurname);
       formData.append("nickname", newNickname);
       formData.append("email", user?.email ?? "");
       if (user?.profilePic) {
@@ -140,18 +138,15 @@ const UserProfile: React.FC = () => {
         formData.append("oldPassword", oldPassword);
         formData.append("newPassword", newPassword);
       }
-      await updateUserProfile(formData);
-      setUser((prevUser) => {
-        if (prevUser) {
-          return {
-            ...prevUser,
-            name: newName,
-            surname: newSurname,
-            nickname: newNickname,
-          };
-        }
-        return prevUser;
+      const response = await fetch(`${config.serverUrl}/auth/user`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        body: formData,
       });
+      const json = await response.json();
+      setUser(json);
       setIsEditing(false);
       setOldPassword("");
       setNewPassword("");
@@ -160,7 +155,7 @@ const UserProfile: React.FC = () => {
       if (error instanceof Error) {
         setError(error.message);
       } else {
-        setError("Network error or server is down");
+        setError("An unknown error occurred");
       }
     } finally {
       setLoading(false);
@@ -168,35 +163,47 @@ const UserProfile: React.FC = () => {
   };
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled && result.assets.length > 0) {
-      const selectedImage = result.assets[0].uri;
-      setUser((prevUser) => {
-        if (prevUser) {
-          return {
-            ...prevUser,
-            profilePic: selectedImage,
-          };
-        }
-        return prevUser;
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
       });
-      const formData = new FormData();
-      formData.append("name", user?.name ?? "");
-      formData.append("surname", user?.surname ?? "");
-      formData.append("nickname", user?.nickname ?? "");
-      formData.append("email", user?.email ?? "");
-      formData.append("profilePic", {
-        uri: selectedImage,
-        type: "image/jpeg",
-        name: "profile.jpg",
-      } as any);
-      await updateUserProfile(formData);
+
+      if (!result.canceled && result.assets.length > 0) {
+        const selectedImage = result.assets[0].uri;
+        setUser((prevUser) => {
+          if (prevUser) {
+            return {
+              ...prevUser,
+              profilePic: selectedImage,
+            };
+          }
+          return prevUser;
+        });
+        const formData = new FormData();
+        formData.append("nickname", user?.nickname ?? "");
+        formData.append("email", user?.email ?? "");
+        formData.append("profilePic", {
+          uri: selectedImage,
+          type: "image/jpeg",
+          name: "profile.jpg",
+        } as any);
+        await fetch(`${config.serverUrl}/auth/user`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          body: formData,
+        });
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occurred");
+      }
     }
   };
 
@@ -224,9 +231,12 @@ const UserProfile: React.FC = () => {
               });
               await clearTokens();
               navigation.navigate("Login");
-            } catch (error) {
-              console.error("Logout failed:", error);
-              setError("Logout failed. Please try again.");
+            } catch (error: unknown) {
+              if (error instanceof Error) {
+                setError(error.message);
+              } else {
+                setError("An unknown error occurred");
+              }
             }
           },
         },
@@ -252,32 +262,51 @@ const UserProfile: React.FC = () => {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          <ProfilePicture
-            profilePic={user.profilePic}
-            onPress={() => setModalVisible(true)}
-            pickImage={pickImage}
-          />
-          <Text style={styles.userName}>
-            {user.name} {user.surname}
-          </Text>
+          <TouchableOpacity onPress={() => setImageModalVisible(true)}>
+            <ProfilePicture
+              profilePic={user.profilePic}
+              onPress={() => setModalVisible(true)}
+              pickImage={pickImage}
+            />
+          </TouchableOpacity>
+          <Text style={styles.userName}>{user.nickname}</Text>
+          {/* <Text style={styles.userNickname}>{user.name}</Text> */}
           <UserProfileDetails
             user={user}
             isEditing={isEditing}
             newNickname={newNickname}
             setNewNickname={setNewNickname}
           />
+          {isEditing && (
+            <>
+              <Text style={styles.label}>Old Password:</Text>
+              <TextInput
+                style={styles.input}
+                secureTextEntry
+                value={oldPassword}
+                onChangeText={setOldPassword}
+              />
+              <Text style={styles.label}>New Password:</Text>
+              <TextInput
+                style={styles.input}
+                secureTextEntry
+                value={newPassword}
+                onChangeText={setNewPassword}
+              />
+              <Text style={styles.label}>Confirm New Password:</Text>
+              <TextInput
+                style={styles.input}
+                secureTextEntry
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+              />
+            </>
+          )}
           <UserProfileEdit
             isEditing={isEditing}
             handleSaveProfile={handleSaveProfile}
             setIsEditing={setIsEditing}
           />
-          <Button
-            mode="contained"
-            onPress={() => navigation.navigate("Posts")}
-            style={styles.button}
-          >
-            My Posts
-          </Button>
           <LogoutButton handleLogout={handleLogout} />
         </ScrollView>
       ) : error ? (
@@ -285,19 +314,11 @@ const UserProfile: React.FC = () => {
       ) : (
         <Text>Loading...</Text>
       )}
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Change Profile Picture</Text>
-            <Button onPress={pickImage}>Pick Image</Button>
-            <Button onPress={() => setModalVisible(false)}>Cancel</Button>
-          </View>
-        </View>
-      </Modal>
+      <FullImageModal
+        modalVisible={imageModalVisible}
+        fullImageUri={user?.profilePic ?? ""}
+        setModalVisible={setImageModalVisible}
+      />
     </SafeAreaView>
   );
 };
