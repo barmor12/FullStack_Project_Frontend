@@ -8,6 +8,8 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
@@ -35,12 +37,16 @@ const UserProfile: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [newNickname, setNewNickname] = useState<string>("");
-  const [oldPassword, setOldPassword] = useState<string>("");
+  const [newUsername, setNewUsername] = useState<string>("");
+  const [currentPassword, setCurrentPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [imageModalVisible, setImageModalVisible] = useState<boolean>(false);
+  const [passwordStatus, setPasswordStatus] = useState<string>("");
+  const [passwordStatusColor, setPasswordStatusColor] = useState<string>("");
+  const [usernameStatus, setUsernameStatus] = useState<string>("");
+  const [usernameStatusColor, setUsernameStatusColor] = useState<string>("");
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
@@ -92,7 +98,7 @@ const UserProfile: React.FC = () => {
         const json = JSON.parse(responseText);
         if (response.status === 200) {
           setUser(json);
-          setNewNickname(json.nickname);
+          setNewUsername(json.name);
         } else {
           setError(json.error || "Failed to fetch user profile!");
         }
@@ -117,15 +123,64 @@ const UserProfile: React.FC = () => {
   };
 
   const handleSaveProfile = async () => {
-    if (newPassword && newPassword !== confirmPassword) {
+    if (newPassword && newPassword !== confirmNewPassword) {
       setError("New passwords do not match");
+      return;
+    }
+
+    // בדיקת זמינות שם משתמש לפני שמירה
+    try {
+      const response = await fetch(`${config.serverUrl}/auth/check-username`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: newUsername }),
+      });
+      const result = await response.json();
+      if (!result.available) {
+        setUsernameStatus("Username is already taken");
+        setUsernameStatusColor("red");
+        return;
+      } else {
+        setUsernameStatus("Username is available");
+        setUsernameStatusColor("green");
+      }
+    } catch (error) {
+      setError("Error checking username availability");
+      return;
+    }
+
+    // בדיקת סיסמא נוכחית לפני שמירה
+    try {
+      const response = await fetch(
+        `${config.serverUrl}/auth/validate-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ password: currentPassword }),
+        }
+      );
+      const result = await response.json();
+      if (!result.valid) {
+        setPasswordStatus("Current password is incorrect");
+        setPasswordStatusColor("red");
+        return;
+      } else {
+        setPasswordStatus("Current password is correct");
+        setPasswordStatusColor("green");
+      }
+    } catch (error) {
+      setError("Error validating current password");
       return;
     }
 
     try {
       setLoading(true);
       const formData = new FormData();
-      formData.append("nickname", newNickname);
+      formData.append("username", newUsername);
       formData.append("email", user?.email ?? "");
       if (user?.profilePic) {
         formData.append("profilePic", {
@@ -134,8 +189,8 @@ const UserProfile: React.FC = () => {
           name: "profile.jpg",
         } as any);
       }
-      if (oldPassword && newPassword) {
-        formData.append("oldPassword", oldPassword);
+      if (currentPassword && newPassword) {
+        formData.append("oldPassword", currentPassword);
         formData.append("newPassword", newPassword);
       }
       const response = await fetch(`${config.serverUrl}/auth/user`, {
@@ -148,9 +203,7 @@ const UserProfile: React.FC = () => {
       const json = await response.json();
       setUser(json);
       setIsEditing(false);
-      setOldPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      resetForm();
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
@@ -159,6 +212,74 @@ const UserProfile: React.FC = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    resetForm();
+    setIsEditing(false);
+  };
+
+  const resetForm = () => {
+    setNewUsername(user?.name ?? "");
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setPasswordStatus("");
+    setUsernameStatus("");
+  };
+
+  const validateCurrentPassword = async (password: string) => {
+    try {
+      const response = await fetch(
+        `${config.serverUrl}/auth/validate-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ password }),
+        }
+      );
+      const result = await response.json();
+      if (result.valid) {
+        setPasswordStatus("Current password is correct");
+        setPasswordStatusColor("green");
+      } else {
+        setPasswordStatus("Current password is incorrect");
+        setPasswordStatusColor("red");
+      }
+    } catch (error) {
+      setPasswordStatus("Error validating password");
+      setPasswordStatusColor("red");
+    }
+  };
+
+  const checkUsernameAvailability = async (username: string) => {
+    if (username === user?.name) {
+      setUsernameStatus("This is your current username");
+      setUsernameStatusColor("green");
+      return;
+    }
+    try {
+      const response = await fetch(`${config.serverUrl}/auth/check-username`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username }),
+      });
+      const result = await response.json();
+      if (result.available) {
+        setUsernameStatus("Username is available");
+        setUsernameStatusColor("green");
+      } else {
+        setUsernameStatus("Username is already taken");
+        setUsernameStatusColor("red");
+      }
+    } catch (error) {
+      setUsernameStatus("Error checking username availability");
+      setUsernameStatusColor("red");
     }
   };
 
@@ -183,7 +304,7 @@ const UserProfile: React.FC = () => {
           return prevUser;
         });
         const formData = new FormData();
-        formData.append("nickname", user?.nickname ?? "");
+        formData.append("username", user?.name ?? "");
         formData.append("email", user?.email ?? "");
         formData.append("profilePic", {
           uri: selectedImage,
@@ -252,74 +373,77 @@ const UserProfile: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
-      ) : user ? (
-        <ScrollView
-          contentContainerStyle={styles.scrollViewContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        >
-          <TouchableOpacity onPress={() => setImageModalVisible(true)}>
-            <ProfilePicture
-              profilePic={user.profilePic}
-              onPress={() => setModalVisible(true)}
-              pickImage={pickImage}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.container}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : user ? (
+          <ScrollView
+            contentContainerStyle={styles.scrollViewContent}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
+            <TouchableOpacity onPress={() => setImageModalVisible(true)}>
+              <ProfilePicture
+                profilePic={user.profilePic}
+                onPress={() => setModalVisible(true)}
+                pickImage={pickImage}
+              />
+            </TouchableOpacity>
+            <UserProfileDetails
+              user={user}
+              isEditing={isEditing}
+              newUsername={newUsername}
+              setNewUsername={(username) => {
+                setNewUsername(username);
+                checkUsernameAvailability(username);
+              }}
+              currentPassword={currentPassword}
+              setCurrentPassword={setCurrentPassword}
+              newPassword={newPassword}
+              setNewPassword={setNewPassword}
+              confirmNewPassword={confirmNewPassword}
+              setConfirmNewPassword={setConfirmNewPassword}
+              validateCurrentPassword={validateCurrentPassword}
+              usernameStatus={usernameStatus}
+              usernameStatusColor={usernameStatusColor}
+              passwordStatus={passwordStatus}
+              passwordStatusColor={passwordStatusColor}
             />
-          </TouchableOpacity>
-          <Text style={styles.userName}>{user.nickname}</Text>
-          {/* <Text style={styles.userNickname}>{user.name}</Text> */}
-          <UserProfileDetails
-            user={user}
-            isEditing={isEditing}
-            newNickname={newNickname}
-            setNewNickname={setNewNickname}
-          />
-          {isEditing && (
-            <>
-              <Text style={styles.label}>Old Password:</Text>
-              <TextInput
-                style={styles.input}
-                secureTextEntry
-                value={oldPassword}
-                onChangeText={setOldPassword}
-              />
-              <Text style={styles.label}>New Password:</Text>
-              <TextInput
-                style={styles.input}
-                secureTextEntry
-                value={newPassword}
-                onChangeText={setNewPassword}
-              />
-              <Text style={styles.label}>Confirm New Password:</Text>
-              <TextInput
-                style={styles.input}
-                secureTextEntry
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-              />
-            </>
-          )}
-          <UserProfileEdit
-            isEditing={isEditing}
-            handleSaveProfile={handleSaveProfile}
-            setIsEditing={setIsEditing}
-          />
-          <LogoutButton handleLogout={handleLogout} />
-        </ScrollView>
-      ) : error ? (
-        <Text style={styles.errorText}>{error}</Text>
-      ) : (
-        <Text>Loading...</Text>
-      )}
-      <FullImageModal
-        modalVisible={imageModalVisible}
-        fullImageUri={user?.profilePic ?? ""}
-        setModalVisible={setImageModalVisible}
-      />
-    </SafeAreaView>
+            <UserProfileEdit
+              isEditing={isEditing}
+              handleSaveProfile={handleSaveProfile}
+              setIsEditing={setIsEditing}
+              oldPassword={currentPassword}
+              setOldPassword={setCurrentPassword}
+            />
+            {isEditing && (
+              <Button
+                mode="contained"
+                onPress={handleCancel}
+                style={styles.button}
+              >
+                Cancel
+              </Button>
+            )}
+            <LogoutButton handleLogout={handleLogout} />
+          </ScrollView>
+        ) : error ? (
+          <Text style={styles.errorText}>{error}</Text>
+        ) : (
+          <Text>Loading...</Text>
+        )}
+        <FullImageModal
+          modalVisible={imageModalVisible}
+          fullImageUri={user?.profilePic ?? ""}
+          setModalVisible={setImageModalVisible}
+        />
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 
