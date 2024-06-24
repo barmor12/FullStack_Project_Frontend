@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { View, Text, TextInput } from "react-native";
 import { User } from "../../Types/types";
 import styles from "../../styles/UserProfileStyles";
@@ -19,6 +19,8 @@ interface UserProfileDetailsProps {
   usernameStatusColor: string;
   passwordStatus: string;
   passwordStatusColor: string;
+  newPasswordStatus: string;
+  newPasswordStatusColor: string;
 }
 
 const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
@@ -37,29 +39,9 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
   usernameStatusColor,
   passwordStatus,
   passwordStatusColor,
+  newPasswordStatus,
+  newPasswordStatusColor,
 }) => {
-  useEffect(() => {
-    if (currentPassword) {
-      validateCurrentPassword(currentPassword);
-    }
-  }, [currentPassword]);
-
-  useEffect(() => {
-    if (newPassword && confirmNewPassword) {
-      if (newPassword === confirmNewPassword) {
-        setNewPasswordStatus("Passwords match");
-        setNewPasswordStatusColor("green");
-      } else {
-        setNewPasswordStatus("Passwords do not match");
-        setNewPasswordStatusColor("red");
-      }
-    }
-  }, [newPassword, confirmNewPassword]);
-
-  const [newPasswordStatus, setNewPasswordStatus] = useState<string>("");
-  const [newPasswordStatusColor, setNewPasswordStatusColor] =
-    useState<string>("");
-
   return (
     <View style={styles.details}>
       <Text style={styles.label}>Email:</Text>
@@ -72,9 +54,7 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
             value={newUsername}
             onChangeText={setNewUsername}
           />
-          <Text style={{ color: usernameStatusColor || "black" }}>
-            {usernameStatus}
-          </Text>
+          <Text style={{ color: usernameStatusColor }}>{usernameStatus}</Text>
         </>
       ) : (
         <Text style={styles.value}>{user.name}</Text>
@@ -86,12 +66,12 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
             style={styles.input}
             secureTextEntry
             value={currentPassword}
-            onChangeText={setCurrentPassword}
+            onChangeText={(password) => {
+              setCurrentPassword(password);
+              validateCurrentPassword(password);
+            }}
           />
-          <Text style={{ color: passwordStatusColor || "black" }}>
-            {passwordStatus}
-          </Text>
-
+          <Text style={{ color: passwordStatusColor }}>{passwordStatus}</Text>
           <Text style={styles.label}>New Password:</Text>
           <TextInput
             style={styles.input}
@@ -106,7 +86,7 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
             value={confirmNewPassword}
             onChangeText={setConfirmNewPassword}
           />
-          <Text style={{ color: newPasswordStatusColor || "black" }}>
+          <Text style={{ color: newPasswordStatusColor }}>
             {newPasswordStatus}
           </Text>
         </>
