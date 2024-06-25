@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, Image } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { RootStackParamList } from "../Types/types";
@@ -7,9 +7,7 @@ import { useGoogleAuth } from "../services/authService";
 import { handleLogin } from "../services/loginService";
 import LoginInput from "../components/LoginComponents/LoginInput";
 import LoginButton from "../components/LoginComponents/LoginButton";
-import RegisterButton from "../components/LoginComponents/RegisterButton";
 import GoogleSignInButton from "../components/GoogleSignInButton";
-import styles from "../styles/LoginStyles";
 
 type LoginScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -58,10 +56,51 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       />
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       <LoginButton onPress={handleLoginPress} />
-      <RegisterButton onPress={() => navigation.navigate("Register")} />
       <GoogleSignInButton onPress={() => promptAsync()} />
+      <View style={styles.registerContainer}>
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+          <Text style={styles.registerText}>
+            Don't have an account?{" "}
+            <Text style={styles.signUpText}>Sign Up</Text>
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#fff", // Set background color to white
+  },
+  logo: {
+    width: 250,
+    height: 250,
+    marginBottom: 30,
+    alignSelf: "center",
+    borderRadius: 300,
+  },
+  errorText: {
+    fontSize: 16,
+    color: "red",
+    marginBottom: 10,
+  },
+  registerContainer: {
+    position: "absolute",
+    bottom: 50, // Adjusted value to move it higher
+    alignSelf: "center",
+  },
+  registerText: {
+    fontSize: 14,
+    color: "#000",
+  },
+  signUpText: {
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+});
 
 export default LoginScreen;

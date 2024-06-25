@@ -134,36 +134,41 @@ const UserProfile: React.FC = () => {
 
   const handleSaveProfile = async () => {
     if (newPassword && newPassword !== confirmNewPassword) {
-      setError("הסיסמאות החדשות אינן תואמות");
+      setError("The new passwords do not match");
       return;
     }
 
-    if (!/^(?=.*[A-Z]).*$/.test(newPassword)) {
-      setError("הסיסמא החדשה חייבת לכלול לפחות אות גדולה אחת");
+    if (newPassword && !/^(?=.*[A-Z]).*$/.test(newPassword)) {
+      setError("The new password must contain at least one uppercase letter");
       return;
     }
 
-    // Check username availability before saving
-    try {
-      const response = await fetch(`${config.serverUrl}/auth/check-username`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username: newUsername }),
-      });
-      const result = await response.json();
-      if (!result.available) {
-        setUsernameStatus("Username is already taken");
-        setUsernameStatusColor("red");
+    // Check username availability before saving, but skip if the username hasn't changed
+    if (newUsername !== user?.nickname) {
+      try {
+        const response = await fetch(
+          `${config.serverUrl}/auth/check-username`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username: newUsername }),
+          }
+        );
+        const result = await response.json();
+        if (!result.available) {
+          setUsernameStatus("Username is already taken");
+          setUsernameStatusColor("red");
+          return;
+        } else {
+          setUsernameStatus("Username is available");
+          setUsernameStatusColor("green");
+        }
+      } catch (error) {
+        setError("Error checking username availability");
         return;
-      } else {
-        setUsernameStatus("Username is available");
-        setUsernameStatusColor("green");
       }
-    } catch (error) {
-      setError("Error checking username availability");
-      return;
     }
 
     // Check current password before saving
@@ -446,7 +451,7 @@ const UserProfile: React.FC = () => {
               confirmNewPassword={confirmNewPassword}
               setConfirmNewPassword={setConfirmNewPassword}
               validateCurrentPassword={validateCurrentPassword}
-              checkUsernameAvailability={checkUsernameAvailability} // הוספת הפונקציה כאן
+              checkUsernameAvailability={checkUsernameAvailability}
               usernameStatus={usernameStatus}
               usernameStatusColor={usernameStatusColor}
               passwordStatus={passwordStatus}

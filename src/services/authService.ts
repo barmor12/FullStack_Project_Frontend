@@ -4,10 +4,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../Config/config";
 import * as AuthSession from "expo-auth-session";
 import axios from "axios";
+import { Platform } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { HomeScreenNavigationProp } from "src/Types/types";
 
-const redirectUri = AuthSession.makeRedirectUri({
-  native: `your-scheme://redirect`,
-});
+// const redirectUri = AuthSession.makeRedirectUri({
+//   native: `scefrontend://oauth2redirect`,
+// });
 
 export const storeTokens = async (
   accessToken: string,
@@ -201,29 +204,51 @@ export const updatePost = async (
 };
 
 export const useGoogleAuth = () => {
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: config.googleClientIdWeb,
-    iosClientId: config.googleClientIdIos,
-    androidClientId: config.googleClientIdAndroid,
-    redirectUri,
+  const navigation = useNavigation<HomeScreenNavigationProp>();
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: Platform.select({
+      ios: config.googleClientIdIos,
+      android: config.googleClientIdAndroid,
+      web: config.googleClientIdWeb,
+    }),
+    redirectUri: Platform.select({
+      ios: "com.barmor.sceproject:/oauth2redirect",
+      android: "exp://172.20.10.5:8081",
+      web: "YOUR_WEB_REDIRECT_URI",
+    }),
   });
 
+  console.log("Request:", request);
+
   useEffect(() => {
-    if (response?.type === "success") {
-      const { authentication } = response;
+    console.log("Response:", response);
+    if (response?.type === "success" && response.authentication) {
+      const { idToken } = response.authentication;
+      console.log("ID Token:", idToken);
       fetch(`${config.serverUrl}/auth/google/callback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ token: authentication?.accessToken }),
+        body: JSON.stringify({ token: idToken }),
       })
         .then((res) => res.json())
         .then((data) => {
-          storeTokens(data.accessToken, data.refreshToken);
-          console.log("Google login successful");
+          console.log("Server response:", data);
+          if (data.accessToken && data.refreshToken) {
+            storeTokens(data.accessToken, data.refreshToken);
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Main" }],
+            });
+            console.log("Google login successful");
+          } else {
+            console.error("Failed to receive tokens from server");
+          }
         })
         .catch((error) => console.error("Error logging in with Google", error));
+    } else {
+      console.log("Authentication failed or canceled.");
     }
   }, [response]);
 
