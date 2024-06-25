@@ -1,19 +1,19 @@
 import React from "react";
-import { Modal, View, Text, TouchableOpacity, Alert } from "react-native";
+import { Modal, View, Text, TouchableOpacity } from "react-native";
 import styles from "../../styles/ModalOptionsStyles";
 
 type ModalOptionsProps = {
   visible: boolean;
   closeOptionsModal: () => void;
-  handleEditPost: () => void;
-  handleDeletePost: () => void;
+  onEditPress: () => void;
+  onDeletePress: () => void;
 };
 
 const ModalOptions: React.FC<ModalOptionsProps> = ({
   visible,
   closeOptionsModal,
-  handleEditPost,
-  handleDeletePost,
+  onEditPress,
+  onDeletePress,
 }) => {
   return (
     <Modal
@@ -33,16 +33,10 @@ const ModalOptions: React.FC<ModalOptionsProps> = ({
           >
             <Text style={styles.closeButtonText}>X</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.optionButton}
-            onPress={handleEditPost}
-          >
+          <TouchableOpacity style={styles.optionButton} onPress={onEditPress}>
             <Text style={styles.optionText}>Edit Post</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.optionButton}
-            onPress={handleDeletePost}
-          >
+          <TouchableOpacity style={styles.optionButton} onPress={onDeletePress}>
             <Text style={styles.optionText}>Delete Post</Text>
           </TouchableOpacity>
         </View>

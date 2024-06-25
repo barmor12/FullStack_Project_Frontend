@@ -124,8 +124,8 @@ const Posts: React.FC = () => {
       <ModalOptions
         visible={modalVisible}
         closeOptionsModal={closeOptionsModal}
-        handleEditPost={handleEditPost}
-        handleDeletePost={handleDeletePost}
+        onEditPress={handleEditPost}
+        onDeletePress={handleDeletePost}
       />
     </SafeAreaView>
   );

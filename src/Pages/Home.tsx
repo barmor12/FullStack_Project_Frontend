@@ -131,8 +131,8 @@ const Home = () => {
       <ModalOptions
         visible={optionsModalVisible}
         closeOptionsModal={closeOptionsModal}
-        handleEditPost={handleEditPost}
-        handleDeletePost={confirmDeletePost}
+        onEditPress={handleEditPost}
+        onDeletePress={confirmDeletePost}
       />
     </SafeAreaView>
   );

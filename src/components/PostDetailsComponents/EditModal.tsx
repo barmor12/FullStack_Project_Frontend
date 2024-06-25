@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   TextInput,
@@ -6,25 +6,33 @@ import {
   Text,
   Image,
   Modal,
+  StyleSheet,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import styles from "../../styles/PostDetailsStyles";
+import { Button } from "react-native-paper";
 
-const EditModal = ({
+interface EditModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onUpdate: (message: string, image: string | null) => Promise<void>;
+  postMessage: string;
+  postImage: string | null;
+}
+
+const EditModal: React.FC<EditModalProps> = ({
   visible,
   onClose,
   onUpdate,
   postMessage,
   postImage,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  onUpdate: (message: string, image: string | null) => void;
-  postMessage: string;
-  postImage: string | null;
 }) => {
   const [editedMessage, setEditedMessage] = useState(postMessage);
   const [selectedImage, setSelectedImage] = useState<string | null>(postImage);
+
+  useEffect(() => {
+    setEditedMessage(postMessage);
+    setSelectedImage(postImage);
+  }, [postMessage, postImage]);
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -72,5 +80,60 @@ const EditModal = ({
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  editModalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  closeButton: {
+    alignSelf: "flex-end",
+    margin: 10,
+  },
+  closeButtonText: {
+    color: "white",
+    fontSize: 18,
+  },
+  input: {
+    width: "80%",
+    padding: 10,
+    backgroundColor: "white",
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  selectedImage: {
+    width: 200,
+    height: 200,
+    marginVertical: 10,
+  },
+  pickImageButton: {
+    marginVertical: 10,
+  },
+  pickImageButtonText: {
+    color: "white",
+    fontSize: 16,
+  },
+  updateButton: {
+    backgroundColor: "blue",
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 10,
+  },
+  updateButtonText: {
+    color: "white",
+    fontSize: 16,
+  },
+  cancelButton: {
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 10,
+  },
+  cancelButtonText: {
+    color: "white",
+    fontSize: 16,
+  },
+});
 
 export default EditModal;

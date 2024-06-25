@@ -1,4 +1,3 @@
-// src/screens/PostDetails.tsx
 import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, ActivityIndicator, Alert } from "react-native";
 import {
@@ -13,13 +12,11 @@ import {
   fetchUserData,
   fetchPostData,
   handleDeletePost,
-  handleUpdatePost,
 } from "../services/postsService";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PostHeader from "../components/PostDetailsComponents/PostHeader";
 import PostContent from "../components/PostDetailsComponents/PostContent";
 import EditOptions from "../components/PostDetailsComponents/EditOptions";
-import EditModal from "../components/PostDetailsComponents/EditModal";
 import styles from "../styles/PostDetailsStyles";
 
 type PostDetailsScreenRouteProp = RouteProp<RootStackParamList, "PostDetails">;
@@ -34,12 +31,8 @@ const PostDetails: React.FC = () => {
   const { postId } = route.params;
   const [post, setPost] = useState<any>(null);
   const [error, setError] = useState<string>("");
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [fullImageUri, setFullImageUri] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [editedMessage, setEditedMessage] = useState<string>("");
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const fetchPost = async () => {
     setError("");
@@ -49,7 +42,6 @@ const PostDetails: React.FC = () => {
 
       const post = await fetchPostData(postId);
       setPost(post);
-      setEditedMessage(post.message);
       navigation.setOptions({ title: post.sender?.nickname || "Post Details" });
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -73,38 +65,15 @@ const PostDetails: React.FC = () => {
   }, [postId]);
 
   const openFullImage = (uri: string) => {
-    setFullImageUri(uri);
-    setEditModalVisible(true);
+    Alert.alert("Image clicked", uri);
+    // Here you can navigate to a full image view or do something else
   };
 
-  const openEditModal = () => {
-    setEditModalVisible(true);
-  };
-
-  const closeEditModal = () => {
-    setEditModalVisible(false);
-  };
-
-  const handleUpdatePostWrapper = async (
-    message: string,
-    image: string | null
-  ) => {
-    setError("");
-    try {
-      const success = await handleUpdatePost(postId, message, image);
-      if (success) {
-        fetchPost();
-        closeEditModal();
-      } else {
-        setError("Failed to update post");
-      }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("Network error or server is down");
-      }
-    }
+  const handleEditPost = () => {
+    navigation.navigate("CreatePost", {
+      postId: post._id,
+      isEdit: true,
+    });
   };
 
   const confirmDeletePost = () => {
@@ -149,11 +118,11 @@ const PostDetails: React.FC = () => {
           <PostContent
             image={post.image}
             message={post.message}
-            onImagePress={openFullImage}
+            onImagePress={openFullImage} // העברת הפונקציה
           />
           {currentUser && currentUser._id === post.sender._id && (
             <EditOptions
-              onEditPress={openEditModal}
+              onEditPress={handleEditPost}
               onDeletePress={confirmDeletePost}
             />
           )}
@@ -161,13 +130,6 @@ const PostDetails: React.FC = () => {
       ) : (
         <Text style={styles.errorText}>{error ? error : "Loading..."}</Text>
       )}
-      <EditModal
-        visible={editModalVisible}
-        onClose={closeEditModal}
-        onUpdate={handleUpdatePostWrapper}
-        postMessage={editedMessage}
-        postImage={selectedImage}
-      />
     </SafeAreaView>
   );
 };
