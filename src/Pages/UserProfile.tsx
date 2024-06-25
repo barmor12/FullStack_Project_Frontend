@@ -47,6 +47,9 @@ const UserProfile: React.FC = () => {
   const [passwordStatusColor, setPasswordStatusColor] = useState<string>("");
   const [usernameStatus, setUsernameStatus] = useState<string>("");
   const [usernameStatusColor, setUsernameStatusColor] = useState<string>("");
+  const [newPasswordStatus, setNewPasswordStatus] = useState<string>("");
+  const [newPasswordStatusColor, setNewPasswordStatusColor] =
+    useState<string>("");
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
@@ -124,11 +127,16 @@ const UserProfile: React.FC = () => {
 
   const handleSaveProfile = async () => {
     if (newPassword && newPassword !== confirmNewPassword) {
-      setError("New passwords do not match");
+      setError("הסיסמאות החדשות אינן תואמות");
       return;
     }
 
-    // בדיקת זמינות שם משתמש לפני שמירה
+    if (!/^(?=.*[A-Z]).*$/.test(newPassword)) {
+      setError("הסיסמא החדשה חייבת לכלול לפחות אות גדולה אחת");
+      return;
+    }
+
+    // Check username availability before saving
     try {
       const response = await fetch(`${config.serverUrl}/auth/check-username`, {
         method: "POST",
@@ -151,7 +159,7 @@ const UserProfile: React.FC = () => {
       return;
     }
 
-    // בדיקת סיסמא נוכחית לפני שמירה
+    // Check current password before saving
     try {
       const response = await fetch(
         `${config.serverUrl}/auth/validate-password`,
@@ -221,12 +229,13 @@ const UserProfile: React.FC = () => {
   };
 
   const resetForm = () => {
-    setNewUsername(user?.name ?? "");
+    setNewUsername(user?.nickname ?? "");
     setCurrentPassword("");
     setNewPassword("");
     setConfirmNewPassword("");
     setPasswordStatus("");
     setUsernameStatus("");
+    setNewPasswordStatus("");
   };
 
   const validateCurrentPassword = async (password: string) => {
@@ -256,7 +265,7 @@ const UserProfile: React.FC = () => {
   };
 
   const checkUsernameAvailability = async (username: string) => {
-    if (username === user?.name) {
+    if (username === user?.nickname) {
       setUsernameStatus("This is your current username");
       setUsernameStatusColor("green");
       return;
@@ -311,7 +320,7 @@ const UserProfile: React.FC = () => {
         });
 
         const formData = new FormData();
-        formData.append("username", user?.name ?? "");
+        formData.append("username", user?.nickname ?? "");
         formData.append("email", user?.email ?? "");
         formData.append("profilePic", {
           uri: result.assets[0].uri,
@@ -423,13 +432,15 @@ const UserProfile: React.FC = () => {
               usernameStatusColor={usernameStatusColor}
               passwordStatus={passwordStatus}
               passwordStatusColor={passwordStatusColor}
+              newPasswordStatus={newPasswordStatus}
+              newPasswordStatusColor={newPasswordStatusColor}
+              setNewPasswordStatus={setNewPasswordStatus}
+              setNewPasswordStatusColor={setNewPasswordStatusColor}
             />
             <UserProfileEdit
               isEditing={isEditing}
               handleSaveProfile={handleSaveProfile}
               setIsEditing={setIsEditing}
-              oldPassword={currentPassword}
-              setOldPassword={setCurrentPassword}
             />
             {isEditing && (
               <Button

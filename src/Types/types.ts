@@ -48,9 +48,7 @@ export interface Post {
 
 export interface User {
   _id: string;
-  name: string;
-  surname: string;
+  nickname: string;
   email: string;
   profilePic: string;
-  nickname: string;
 }

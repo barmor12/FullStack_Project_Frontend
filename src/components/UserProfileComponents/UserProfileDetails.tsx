@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { View, Text, TextInput } from "react-native";
 import { User } from "../../Types/types";
 import styles from "../../styles/UserProfileStyles";
@@ -19,6 +19,10 @@ interface UserProfileDetailsProps {
   usernameStatusColor: string;
   passwordStatus: string;
   passwordStatusColor: string;
+  newPasswordStatus: string;
+  newPasswordStatusColor: string;
+  setNewPasswordStatus: (status: string) => void;
+  setNewPasswordStatusColor: (color: string) => void;
 }
 
 const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
@@ -37,6 +41,10 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
   usernameStatusColor,
   passwordStatus,
   passwordStatusColor,
+  newPasswordStatus,
+  newPasswordStatusColor,
+  setNewPasswordStatus,
+  setNewPasswordStatusColor,
 }) => {
   useEffect(() => {
     if (currentPassword) {
@@ -56,10 +64,6 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
     }
   }, [newPassword, confirmNewPassword]);
 
-  const [newPasswordStatus, setNewPasswordStatus] = useState<string>("");
-  const [newPasswordStatusColor, setNewPasswordStatusColor] =
-    useState<string>("");
-
   return (
     <View style={styles.details}>
       <Text style={styles.label}>Email:</Text>
@@ -77,7 +81,7 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
           </Text>
         </>
       ) : (
-        <Text style={styles.value}>{user.name}</Text>
+        <Text style={styles.value}>{user.nickname}</Text>
       )}
       {isEditing && (
         <>
@@ -93,6 +97,9 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
           </Text>
 
           <Text style={styles.label}>New Password:</Text>
+          <Text style={styles.instructions}>
+            Password must contain at least one uppercase letter.
+          </Text>
           <TextInput
             style={styles.input}
             secureTextEntry

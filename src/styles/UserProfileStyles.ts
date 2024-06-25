@@ -94,6 +94,11 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     padding: 20,
   },
+  instructions: {
+    fontSize: 14,
+    color: "#777",
+    marginBottom: 5,
+  },
 });
 
 export default styles;
