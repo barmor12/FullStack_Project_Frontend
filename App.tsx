@@ -41,55 +41,28 @@ const CreatePostStack = () => (
   </Stack.Navigator>
 );
 
-type TabBarIconProps = {
-  route: { name: string };
-  focused: boolean;
-  color: string;
-  size: number;
-};
-
-const AnimatedTabBarIcon: React.FC<TabBarIconProps> = ({
-  route,
-  focused,
-  color,
-  size,
-}) => {
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: withSpring(focused ? 1.2 : 1) }],
-    };
-  });
-
-  let iconName = "";
-
-  if (route.name === "HomeTab") {
-    iconName = "home-outline";
-  } else if (route.name === "Posts") {
-    iconName = "list-outline";
-  } else if (route.name === "CreatePostTab") {
-    iconName = "add-circle-outline";
-  } else if (route.name === "UserProfileTab") {
-    iconName = "person-outline";
-  }
-
-  return (
-    <Animated.View style={animatedStyle}>
-      <Ionicons name={iconName as any} size={size} color={color} />
-    </Animated.View>
-  );
-};
-
 const MainTabNavigator = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
-      tabBarIcon: ({ focused, color, size }) => (
-        <AnimatedTabBarIcon
-          route={route}
-          focused={focused}
-          color={color}
-          size={size}
-        />
-      ),
+      tabBarIcon: ({ focused, color, size }) => {
+        const iconName =
+          {
+            HomeTab: "home-outline",
+            Posts: "list-outline",
+            CreatePostTab: "add-circle-outline",
+            UserProfileTab: "person-outline",
+          }[route.name] || "home-outline";
+
+        const animatedStyle = useAnimatedStyle(() => ({
+          transform: [{ scale: withSpring(focused ? 1.2 : 1) }],
+        }));
+
+        return (
+          <Animated.View style={animatedStyle}>
+            <Ionicons name={iconName as any} size={size} color={color} />
+          </Animated.View>
+        );
+      },
       tabBarActiveTintColor: "#6200ee",
       tabBarInactiveTintColor: "gray",
     })}

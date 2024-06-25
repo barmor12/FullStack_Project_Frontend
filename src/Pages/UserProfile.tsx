@@ -389,13 +389,12 @@ const UserProfile: React.FC = () => {
                 },
               });
               await clearTokens();
-              navigation.navigate("Login");
-            } catch (error: unknown) {
-              if (error instanceof Error) {
-                setError(error.message);
-              } else {
-                setError("An unknown error occurred");
-              }
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "Login" }],
+              });
+            } catch (error) {
+              console.error(error);
             }
           },
         },

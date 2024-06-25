@@ -30,12 +30,16 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     const loginError = await handleLogin(email, password, navigation);
     if (loginError) {
       setError(loginError);
+    } else {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Main" }],
+      });
     }
   };
 
   useFocusEffect(
     useCallback(() => {
-      // ניקוי השדות בכל פעם שהמסך מקבל פוקוס
       setEmail("");
       setPassword("");
       setError("");
