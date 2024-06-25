@@ -1,0 +1,6 @@
+module Pods_scefrontend {
+  umbrella header "Pods-scefrontend-umbrella.h"
+
+  export *
+  module * { export * }
+}
