@@ -30,6 +30,7 @@ import UserProfileDetails from "../components/UserProfileComponents/UserProfileD
 import UserProfileEdit from "../components/UserProfileComponents/UserProfileEdit";
 import LogoutButton from "../components/UserProfileComponents/LogoutButton";
 import FullImageModal from "../components/HomeComponents/FullImageModal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const UserProfile: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -240,12 +241,14 @@ const UserProfile: React.FC = () => {
 
   const validateCurrentPassword = async (password: string) => {
     try {
+      const token = await AsyncStorage.getItem("accessToken"); // נניח שאתה שומר את הטוקן ב-AsyncStorage
       const response = await fetch(
         `${config.serverUrl}/auth/validate-password`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // הוספת הטוקן לכותרות
           },
           body: JSON.stringify({ password }),
         }
