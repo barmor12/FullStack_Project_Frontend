@@ -28,6 +28,7 @@ const CreatePost = () => {
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (postId) {
@@ -43,6 +44,7 @@ const CreatePost = () => {
           const post = await response.json();
           setMessage(post.message);
           setImage(post.image || null);
+          setOriginalImage(post.image || null); // Keep the original image
         } catch (error) {
           setError("Failed to fetch post data");
         }
@@ -104,7 +106,8 @@ const CreatePost = () => {
       let postResponse;
       const formData = new FormData();
       formData.append("message", message);
-      if (image) {
+
+      if (image && image !== originalImage) {
         formData.append("image", {
           uri: image,
           type: "image/jpeg",
