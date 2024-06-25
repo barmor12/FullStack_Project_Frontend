@@ -7,7 +7,7 @@ interface UserProfileDetailsProps {
   user: User;
   isEditing: boolean;
   newUsername: string;
-  setNewUsername: (username: string) => void;
+  setNewUsername: (name: string) => void;
   currentPassword: string;
   setCurrentPassword: (password: string) => void;
   newPassword: string;

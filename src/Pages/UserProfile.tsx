@@ -102,7 +102,7 @@ const UserProfile: React.FC = () => {
         const json = JSON.parse(responseText);
         if (response.status === 200) {
           setUser(json);
-          setNewUsername(json.name);
+          setNewUsername(json.nickname);
         } else {
           setError(json.error || "Failed to fetch user profile!");
         }
@@ -162,12 +162,14 @@ const UserProfile: React.FC = () => {
 
     // Check current password before saving
     try {
+      const token = await AsyncStorage.getItem("accessToken");
       const response = await fetch(
         `${config.serverUrl}/auth/validate-password`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ password: currentPassword }),
         }
@@ -188,26 +190,19 @@ const UserProfile: React.FC = () => {
 
     try {
       setLoading(true);
-      const formData = new FormData();
-      formData.append("username", newUsername);
-      formData.append("email", user?.email ?? "");
-      if (user?.profilePic) {
-        formData.append("profilePic", {
-          uri: user.profilePic,
-          type: "image/jpeg",
-          name: "profile.jpg",
-        } as any);
-      }
-      if (currentPassword && newPassword) {
-        formData.append("oldPassword", currentPassword);
-        formData.append("newPassword", newPassword);
-      }
+      const token = await getAccessToken();
       const response = await fetch(`${config.serverUrl}/auth/user`, {
         method: "PUT",
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: formData,
+        body: JSON.stringify({
+          name: newUsername,
+          email: user?.email ?? "",
+          oldPassword: currentPassword,
+          newPassword: newPassword,
+        }),
       });
       const json = await response.json();
       setUser(json);
@@ -221,6 +216,36 @@ const UserProfile: React.FC = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveProfilePic = async (uri: string) => {
+    try {
+      const formData = new FormData();
+      formData.append("profilePic", {
+        uri,
+        type: "image/jpeg",
+        name: "profile.jpg",
+      } as any);
+
+      const token = await getAccessToken();
+      const response = await fetch(`${config.serverUrl}/auth/profile-pic`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const json = await response.json();
+      setUser(json);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occurred");
+      }
     }
   };
 
@@ -241,19 +266,21 @@ const UserProfile: React.FC = () => {
 
   const validateCurrentPassword = async (password: string) => {
     try {
-      const token = await AsyncStorage.getItem("accessToken"); // נניח שאתה שומר את הטוקן ב-AsyncStorage
+      const token = await AsyncStorage.getItem("accessToken");
+      console.log("Validating current password with token:", token);
       const response = await fetch(
         `${config.serverUrl}/auth/validate-password`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // הוספת הטוקן לכותרות
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ password }),
         }
       );
       const result = await response.json();
+      console.log("Validation result:", result);
       if (result.valid) {
         setPasswordStatus("Current password is correct");
         setPasswordStatusColor("green");
@@ -322,24 +349,7 @@ const UserProfile: React.FC = () => {
           return prevUser;
         });
 
-        const formData = new FormData();
-        formData.append("username", user?.nickname ?? "");
-        formData.append("email", user?.email ?? "");
-        formData.append("profilePic", {
-          uri: result.assets[0].uri,
-          type: "image/jpeg",
-          name: "profile.jpg",
-        } as any);
-
-        const token = await getAccessToken();
-        await fetch(`${config.serverUrl}/auth/user`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        });
+        handleSaveProfilePic(result.assets[0].uri);
       }
     } catch (error: unknown) {
       if (error instanceof Error) {

@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
-import { FontAwesome, Entypo } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
 import config from "../../Config/config";
 import { Post, User } from "../../Types/types";
 import styles from "../../styles/PostItemStyles";
@@ -38,7 +38,7 @@ const PostItem: React.FC<PostItemProps> = ({
           )}
           <View style={styles.postHeaderText}>
             {item.sender && (
-              <Text style={styles.sender}>{item.sender.name}</Text>
+              <Text style={styles.sender}>{item.sender.nickname}</Text>
             )}
             <Text style={styles.postDate}>
               {new Date(item.createdAt).toLocaleDateString()}{" "}

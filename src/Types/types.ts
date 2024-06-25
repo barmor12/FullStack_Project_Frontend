@@ -39,6 +39,7 @@ export interface Post {
   message: string;
   sender: {
     _id: string;
+    nickname: string;
     name: string;
     profilePic: string;
   };
@@ -49,6 +50,7 @@ export interface Post {
 export interface User {
   _id: string;
   nickname: string;
+  name: string;
   email: string;
   profilePic: string;
 }

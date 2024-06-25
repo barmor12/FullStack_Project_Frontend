@@ -21,7 +21,7 @@ const PostHeader = ({
         <View style={styles.placeholderPic} />
       )}
       <View style={styles.headerTextContainer}>
-        <Text style={styles.senderName}>{sender.name}</Text>
+        <Text style={styles.senderName}>{sender.nickname}</Text>
         <Text style={styles.postDate}>
           {new Date(createdAt).toLocaleDateString()}{" "}
           {new Date(createdAt).toLocaleTimeString()}

@@ -50,7 +50,7 @@ const PostDetails: React.FC = () => {
       const post = await fetchPostData(postId);
       setPost(post);
       setEditedMessage(post.message);
-      navigation.setOptions({ title: post.sender?.name || "Post Details" });
+      navigation.setOptions({ title: post.sender?.nickname || "Post Details" });
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
