@@ -15,6 +15,7 @@ interface UserProfileDetailsProps {
   confirmNewPassword: string;
   setConfirmNewPassword: (password: string) => void;
   validateCurrentPassword: (password: string) => void;
+  checkUsernameAvailability: (username: string) => void;
   usernameStatus: string;
   usernameStatusColor: string;
   passwordStatus: string;
@@ -37,6 +38,7 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
   confirmNewPassword,
   setConfirmNewPassword,
   validateCurrentPassword,
+  checkUsernameAvailability,
   usernameStatus,
   usernameStatusColor,
   passwordStatus,
@@ -63,6 +65,12 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
       }
     }
   }, [newPassword, confirmNewPassword]);
+
+  useEffect(() => {
+    if (newUsername) {
+      checkUsernameAvailability(newUsername);
+    }
+  }, [newUsername]);
 
   return (
     <View style={styles.details}>

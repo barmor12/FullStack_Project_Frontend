@@ -446,6 +446,7 @@ const UserProfile: React.FC = () => {
               confirmNewPassword={confirmNewPassword}
               setConfirmNewPassword={setConfirmNewPassword}
               validateCurrentPassword={validateCurrentPassword}
+              checkUsernameAvailability={checkUsernameAvailability} // הוספת הפונקציה כאן
               usernameStatus={usernameStatus}
               usernameStatusColor={usernameStatusColor}
               passwordStatus={passwordStatus}
