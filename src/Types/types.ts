@@ -14,7 +14,10 @@ export type RootStackParamList = {
   Posts: undefined;
   UserProfile: undefined;
   Main: undefined;
-  CreatePostScreen: undefined;
+  CreatePostScreen: {
+    postId?: string;
+    isEdit?: boolean;
+  };
   UserProfileScreen: undefined;
   HomeScreen: undefined;
 };
@@ -24,14 +27,19 @@ export type HomeScreenNavigationProp = StackNavigationProp<
   "Home"
 >;
 
+export type UserProfileScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "UserProfile"
+>;
+
 export type CreatePostScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
-  "CreatePost"
+  "CreatePostScreen"
 >;
 
 export type CreatePostScreenRouteProp = RouteProp<
   RootStackParamList,
-  "CreatePost"
+  "CreatePostScreen"
 >;
 
 export interface Post {

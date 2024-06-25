@@ -31,13 +31,13 @@ const HomeStack = () => (
 
 const UserProfileStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="UserProfileScreen" component={UserProfile} />
+    <Stack.Screen name="UserProfile" component={UserProfile} />
   </Stack.Navigator>
 );
 
 const CreatePostStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="CreatePostScreen" component={CreatePost} />
+    <Stack.Screen name="CreatePost" component={CreatePost} />
   </Stack.Navigator>
 );
 

@@ -13,7 +13,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
 
   const handleNavigateToUserProfile = () => {
-    navigation.navigate("UserProfileScreen"); // ודא שזה תואם את השם של המסך בניווט שלך
+    navigation.navigate("UserProfile");
   };
 
   return (
@@ -33,10 +33,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
         </View>
       )}
       <View style={styles.textContainer}>
-        <Image
-          source={require("../../assets/logo.png")} // ודא שהנתיב נכון
-          style={styles.logo}
-        />
+        <Image source={require("../../assets/logo.png")} style={styles.logo} />
         <Text style={styles.headerText}>Welcome to Bar Mor's App!</Text>
         <Text style={styles.headerSubText}>
           This app is about posting and viewing posts from other users.
