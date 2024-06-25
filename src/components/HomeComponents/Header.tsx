@@ -32,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
               source={{ uri: `${config.serverUrl}${user.profilePic}` }}
               style={styles.profileIcon}
             />
-            <Text style={styles.profileText}>Hello, {user.name}</Text>
+            <Text style={styles.profileText}>Hello, {user.nickname}</Text>
           </TouchableOpacity>
         </View>
       )}
