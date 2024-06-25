@@ -47,9 +47,6 @@ const UserProfile: React.FC = () => {
   const [passwordStatusColor, setPasswordStatusColor] = useState<string>("");
   const [usernameStatus, setUsernameStatus] = useState<string>("");
   const [usernameStatusColor, setUsernameStatusColor] = useState<string>("");
-  const [newPasswordStatus, setNewPasswordStatus] = useState<string>("");
-  const [newPasswordStatusColor, setNewPasswordStatusColor] =
-    useState<string>("");
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
@@ -128,17 +125,6 @@ const UserProfile: React.FC = () => {
   const handleSaveProfile = async () => {
     if (newPassword && newPassword !== confirmNewPassword) {
       setError("New passwords do not match");
-      setNewPasswordStatus("New passwords do not match");
-      setNewPasswordStatusColor("red");
-      return;
-    }
-
-    if (newPassword && !/[A-Z]/.test(newPassword)) {
-      setError("New password must contain at least one uppercase letter");
-      setNewPasswordStatus(
-        "New password must contain at least one uppercase letter"
-      );
-      setNewPasswordStatusColor("red");
       return;
     }
 
@@ -152,12 +138,13 @@ const UserProfile: React.FC = () => {
         body: JSON.stringify({ username: newUsername }),
       });
       const result = await response.json();
-      if (!result.available && newUsername !== user?.name) {
+      if (!result.available) {
         setUsernameStatus("Username is already taken");
         setUsernameStatusColor("red");
         return;
       } else {
-        setUsernameStatus("");
+        setUsernameStatus("Username is available");
+        setUsernameStatusColor("green");
       }
     } catch (error) {
       setError("Error checking username availability");
@@ -166,14 +153,12 @@ const UserProfile: React.FC = () => {
 
     // בדיקת סיסמא נוכחית לפני שמירה
     try {
-      const token = await getAccessToken();
       const response = await fetch(
         `${config.serverUrl}/auth/validate-password`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ password: currentPassword }),
         }
@@ -184,7 +169,8 @@ const UserProfile: React.FC = () => {
         setPasswordStatusColor("red");
         return;
       } else {
-        setPasswordStatus("");
+        setPasswordStatus("Current password is correct");
+        setPasswordStatusColor("green");
       }
     } catch (error) {
       setError("Error validating current password");
@@ -218,7 +204,6 @@ const UserProfile: React.FC = () => {
       setUser(json);
       setIsEditing(false);
       resetForm();
-      Alert.alert("Success", "Profile updated successfully!");
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
@@ -242,19 +227,16 @@ const UserProfile: React.FC = () => {
     setConfirmNewPassword("");
     setPasswordStatus("");
     setUsernameStatus("");
-    setNewPasswordStatus("");
   };
 
   const validateCurrentPassword = async (password: string) => {
     try {
-      const token = await getAccessToken();
       const response = await fetch(
         `${config.serverUrl}/auth/validate-password`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ password }),
         }
@@ -303,6 +285,13 @@ const UserProfile: React.FC = () => {
 
   const pickImage = async () => {
     try {
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (permissionResult.granted === false) {
+        Alert.alert("Permission to access gallery is required!");
+        return;
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -311,28 +300,31 @@ const UserProfile: React.FC = () => {
       });
 
       if (!result.canceled && result.assets.length > 0) {
-        const selectedImage = result.assets[0].uri;
         setUser((prevUser) => {
           if (prevUser) {
             return {
               ...prevUser,
-              profilePic: selectedImage,
+              profilePic: result.assets[0].uri,
             };
           }
           return prevUser;
         });
+
         const formData = new FormData();
         formData.append("username", user?.name ?? "");
         formData.append("email", user?.email ?? "");
         formData.append("profilePic", {
-          uri: selectedImage,
+          uri: result.assets[0].uri,
           type: "image/jpeg",
           name: "profile.jpg",
         } as any);
+
+        const token = await getAccessToken();
         await fetch(`${config.serverUrl}/auth/user`, {
           method: "PUT",
           headers: {
             "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
           },
           body: formData,
         });
@@ -423,39 +415,21 @@ const UserProfile: React.FC = () => {
               currentPassword={currentPassword}
               setCurrentPassword={setCurrentPassword}
               newPassword={newPassword}
-              setNewPassword={(password) => {
-                setNewPassword(password);
-                if (password !== confirmNewPassword) {
-                  setNewPasswordStatus("Passwords do not match");
-                  setNewPasswordStatusColor("red");
-                } else {
-                  setNewPasswordStatus("Passwords match");
-                  setNewPasswordStatusColor("green");
-                }
-              }}
+              setNewPassword={setNewPassword}
               confirmNewPassword={confirmNewPassword}
-              setConfirmNewPassword={(password) => {
-                setConfirmNewPassword(password);
-                if (password !== newPassword) {
-                  setNewPasswordStatus("Passwords do not match");
-                  setNewPasswordStatusColor("red");
-                } else {
-                  setNewPasswordStatus("Passwords match");
-                  setNewPasswordStatusColor("green");
-                }
-              }}
+              setConfirmNewPassword={setConfirmNewPassword}
               validateCurrentPassword={validateCurrentPassword}
               usernameStatus={usernameStatus}
               usernameStatusColor={usernameStatusColor}
               passwordStatus={passwordStatus}
               passwordStatusColor={passwordStatusColor}
-              newPasswordStatus={newPasswordStatus}
-              newPasswordStatusColor={newPasswordStatusColor}
             />
             <UserProfileEdit
               isEditing={isEditing}
               handleSaveProfile={handleSaveProfile}
               setIsEditing={setIsEditing}
+              oldPassword={currentPassword}
+              setOldPassword={setCurrentPassword}
             />
             {isEditing && (
               <Button
