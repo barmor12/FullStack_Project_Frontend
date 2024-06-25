@@ -19,8 +19,6 @@ const PostItem: React.FC<PostItemProps> = ({
   item,
   user,
   handleNavigateToPostDetails,
-  handleEditPost,
-  handleDeletePost,
   openFullImage,
   openOptionsModal,
 }) => {

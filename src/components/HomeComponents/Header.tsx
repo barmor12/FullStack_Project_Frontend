@@ -13,7 +13,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
 
   const handleNavigateToUserProfile = () => {
-    navigation.navigate("UserProfileScreen"); // Ensure this matches the screen name in your navigator
+    navigation.navigate("UserProfileScreen"); // ודא שזה תואם את השם של המסך בניווט שלך
   };
 
   return (
@@ -34,7 +34,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
       )}
       <View style={styles.textContainer}>
         <Image
-          source={require("../../assets/logo.png")} // Adjust the path if needed
+          source={require("../../assets/logo.png")} // ודא שהנתיב נכון
           style={styles.logo}
         />
         <Text style={styles.headerText}>Welcome to Bar Mor's App!</Text>

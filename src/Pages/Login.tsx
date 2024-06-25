@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { View, Text, Image } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
+import { useFocusEffect } from "@react-navigation/native";
 import { RootStackParamList } from "../Types/types";
 import { useGoogleAuth } from "../services/authService";
 import { handleLogin } from "../services/loginService";
-import LoginInput from "../components//LoginComponents/LoginInput";
+import LoginInput from "../components/LoginComponents/LoginInput";
 import LoginButton from "../components/LoginComponents/LoginButton";
 import RegisterButton from "../components/LoginComponents/RegisterButton";
 import GoogleSignInButton from "../components/GoogleSignInButton";
@@ -31,6 +32,15 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       setError(loginError);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      // ניקוי השדות בכל פעם שהמסך מקבל פוקוס
+      setEmail("");
+      setPassword("");
+      setError("");
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
