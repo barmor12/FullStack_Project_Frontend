@@ -11,15 +11,14 @@ const styles = StyleSheet.create({
   profileIconContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 20, // Added margin to separate from the header
   },
   profileIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
+    marginLeft: 8, // Adding margin to separate from the username
   },
   profileText: {
-    marginLeft: 8,
     fontSize: 16,
     fontWeight: "bold",
     color: "black",
@@ -136,8 +135,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   headerContainer: {
-    alignItems: "center",
-    marginBottom: 20,
     padding: 15,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
@@ -147,22 +144,37 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 5,
+    position: "relative",
+    flexDirection: "column", // Ensuring column direction
+  },
+  textContainer: {
+    alignItems: "center",
+    marginTop: 50, // Adding space to push the text below the profile
   },
   headerText: {
     fontSize: 24,
     fontWeight: "bold",
     color: "#333",
+    textAlign: "center",
+    marginBottom: 5,
   },
   headerSubText: {
     fontSize: 16,
     color: "#555",
     textAlign: "center",
-    marginTop: 5,
   },
   userContainer: {
+    position: "absolute",
+    top: 10,
+    right: 10,
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 10,
+  },
+  logo: {
+    width: 300,
+    height: 300,
+    marginBottom: 20, // Adding space between the logo and the text
+    resizeMode: "contain",
   },
 });
 

@@ -17,7 +17,6 @@ import CreatePost from "./src/Pages/CreatePost";
 import PostDetails from "./src/Pages/PostDetails";
 import { RootStackParamList } from "./src/Types/types";
 import { getAccessToken, isTokenExpired } from "./src/services/authService";
-import axiosInstance from "./src/services/axiosInstance";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();

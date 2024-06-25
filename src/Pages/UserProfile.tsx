@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   ActivityIndicator,
@@ -12,7 +12,11 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
+import {
+  useNavigation,
+  useFocusEffect,
+  NavigationProp,
+} from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { Button } from "react-native-paper";
 
@@ -54,9 +58,11 @@ const UserProfile: React.FC = () => {
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
 
   const fetchData = async () => {
     await fetchUserProfile();
