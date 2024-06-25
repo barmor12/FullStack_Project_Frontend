@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 250,
     height: 250,
-    borderRadius: 100,
+    borderRadius: 300,
   },
   errorText: {
     color: "red",

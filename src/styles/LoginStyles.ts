@@ -18,9 +18,11 @@ const LoginStyles = StyleSheet.create({
     marginTop: 10,
   },
   logo: {
-    width: 200,
-    height: 200,
-    marginBottom: 32,
+    width: 350,
+    height: 350,
+    marginBottom: 30,
+    alignSelf: "center",
+    borderRadius: 100,
   },
 });
 
