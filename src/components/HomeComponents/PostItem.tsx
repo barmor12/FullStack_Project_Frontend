@@ -22,14 +22,26 @@ const PostItem: React.FC<PostItemProps> = ({
   openFullImage,
   openOptionsModal,
 }) => {
+  const getProfilePicUri = (profilePic: string) => {
+    return profilePic.startsWith("http")
+      ? profilePic
+      : `${config.serverUrl}${profilePic}`;
+  };
+
   return (
     <TouchableOpacity onPress={() => handleNavigateToPostDetails(item._id)}>
       <View style={styles.post}>
         <View style={styles.postHeader}>
           {item.sender && item.sender.profilePic ? (
             <Image
-              source={{ uri: `${config.serverUrl}${item.sender.profilePic}` }}
+              source={{ uri: getProfilePicUri(item.sender.profilePic) }}
               style={styles.profilePic}
+              onError={(e) =>
+                console.error(
+                  "Failed to load profile picture",
+                  e.nativeEvent.error
+                )
+              }
             />
           ) : (
             <View style={styles.profilePicPlaceholder} />
@@ -57,6 +69,9 @@ const PostItem: React.FC<PostItemProps> = ({
             <Image
               source={{ uri: `${config.serverUrl}${item.image}` }}
               style={styles.postImage}
+              onError={(e) =>
+                console.error("Failed to load post image", e.nativeEvent.error)
+              }
             />
           </TouchableOpacity>
         )}

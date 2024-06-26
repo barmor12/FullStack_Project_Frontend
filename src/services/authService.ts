@@ -1,16 +1,17 @@
 import * as Google from "expo-auth-session/providers/google";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../Config/config";
-import * as AuthSession from "expo-auth-session";
 import axios from "axios";
-import { Platform } from "react-native";
+import { Alert, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { HomeScreenNavigationProp } from "src/Types/types";
+import { HomeScreenNavigationProp, RootStackParamList } from "src/Types/types";
+import { StackNavigationProp } from "@react-navigation/stack";
 
-// const redirectUri = AuthSession.makeRedirectUri({
-//   native: `scefrontend://oauth2redirect`,
-// });
+type GoogleAuthNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "PasswordVerification"
+>;
 
 export const storeTokens = async (
   accessToken: string,
@@ -90,16 +91,6 @@ export const refreshAccessToken = async () => {
   }
 };
 
-export const clearTokens = async () => {
-  try {
-    await AsyncStorage.removeItem("accessToken");
-    await AsyncStorage.removeItem("refreshToken");
-    console.log("Tokens cleared");
-  } catch (error) {
-    console.error("Failed to clear tokens:", error);
-  }
-};
-
 const axiosInstance = axios.create({
   baseURL: config.serverUrl,
 });
@@ -110,7 +101,7 @@ axiosInstance.interceptors.request.use(
     if (accessToken && isTokenExpired(accessToken)) {
       accessToken = await refreshAccessToken();
     }
-    if (config.headers) {
+    if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
@@ -135,6 +126,16 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export const clearTokens = async () => {
+  try {
+    await AsyncStorage.removeItem("accessToken");
+    await AsyncStorage.removeItem("refreshToken");
+    console.log("Tokens cleared");
+  } catch (error) {
+    console.error("Failed to clear tokens:", error);
+  }
+};
 
 export const fetchWithAuth = async (url: string, options: any = {}) => {
   try {
@@ -204,7 +205,7 @@ export const updatePost = async (
 };
 
 export const useGoogleAuth = () => {
-  const navigation = useNavigation<HomeScreenNavigationProp>();
+  const navigation = useNavigation<GoogleAuthNavigationProp>();
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     clientId: Platform.select({
       ios: config.googleClientIdIos,
@@ -218,37 +219,39 @@ export const useGoogleAuth = () => {
     }),
   });
 
-  console.log("Request:", request);
-
   useEffect(() => {
-    console.log("Response:", response);
-    if (response?.type === "success" && response.authentication) {
+    const handleGoogleLogin = async (idToken: string) => {
+      try {
+        const userResponse = await axios.post(
+          `${config.serverUrl}/auth/google/check-user`,
+          { token: idToken }
+        );
+
+        if (userResponse.data.exists) {
+          await AsyncStorage.setItem(
+            "accessToken",
+            userResponse.data.tokens.accessToken
+          );
+          await AsyncStorage.setItem(
+            "refreshToken",
+            userResponse.data.tokens.refreshToken
+          );
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Main" }],
+          });
+        } else {
+          navigation.navigate("PasswordVerification", { idToken });
+        }
+      } catch (error) {
+        console.error("Error checking Google user", error);
+        Alert.alert("Error", "An error occurred while checking user");
+      }
+    };
+
+    if (response?.type === "success" && response.authentication?.idToken) {
       const { idToken } = response.authentication;
-      console.log("ID Token:", idToken);
-      fetch(`${config.serverUrl}/auth/google/callback`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token: idToken }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log("Server response:", data);
-          if (data.accessToken && data.refreshToken) {
-            storeTokens(data.accessToken, data.refreshToken);
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "Main" }],
-            });
-            console.log("Google login successful");
-          } else {
-            console.error("Failed to receive tokens from server");
-          }
-        })
-        .catch((error) => console.error("Error logging in with Google", error));
-    } else {
-      console.log("Authentication failed or canceled.");
+      handleGoogleLogin(idToken);
     }
   }, [response]);
 

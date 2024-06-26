@@ -107,7 +107,13 @@ const UserProfile: React.FC = () => {
       try {
         const json = JSON.parse(responseText);
         if (response.status === 200) {
-          setUser(json);
+          console.log("User profile data:", json);
+          setUser({
+            ...json,
+            profilePic: json.profilePic.startsWith("http")
+              ? json.profilePic
+              : `${config.serverUrl}${json.profilePic}`,
+          });
           setNewUsername(json.nickname);
         } else {
           setError(json.error || "Failed to fetch user profile!");
@@ -216,7 +222,12 @@ const UserProfile: React.FC = () => {
         }),
       });
       const json = await response.json();
-      setUser(json);
+      setUser({
+        ...json,
+        profilePic: json.profilePic.startsWith("http")
+          ? json.profilePic
+          : `${config.serverUrl}${json.profilePic}`,
+      });
       setIsEditing(false);
       resetForm();
     } catch (error: unknown) {
@@ -250,7 +261,12 @@ const UserProfile: React.FC = () => {
       });
 
       const json = await response.json();
-      setUser(json);
+      setUser({
+        ...json,
+        profilePic: json.profilePic.startsWith("http")
+          ? json.profilePic
+          : `${config.serverUrl}${json.profilePic}`,
+      });
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
@@ -350,17 +366,21 @@ const UserProfile: React.FC = () => {
       });
 
       if (!result.canceled && result.assets.length > 0) {
-        setUser((prevUser) => {
-          if (prevUser) {
-            return {
-              ...prevUser,
-              profilePic: result.assets[0].uri,
-            };
-          }
-          return prevUser;
-        });
+        const uri = result.assets[0].uri;
 
-        handleSaveProfilePic(result.assets[0].uri);
+        if (user?.googleId) {
+          setUser((prevUser) => {
+            if (prevUser) {
+              return {
+                ...prevUser,
+                profilePic: uri,
+              };
+            }
+            return prevUser;
+          });
+        } else {
+          handleSaveProfilePic(uri);
+        }
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -431,7 +451,7 @@ const UserProfile: React.FC = () => {
           >
             <TouchableOpacity onPress={() => setImageModalVisible(true)}>
               <ProfilePicture
-                profilePic={user.profilePic}
+                profilePic={user.profilePic || null}
                 onPress={() => setModalVisible(true)}
                 pickImage={pickImage}
               />
@@ -484,7 +504,7 @@ const UserProfile: React.FC = () => {
         )}
         <FullImageModal
           modalVisible={imageModalVisible}
-          fullImageUri={user?.profilePic ?? ""}
+          fullImageUri={user?.profilePic || ""}
           setModalVisible={setImageModalVisible}
         />
       </SafeAreaView>

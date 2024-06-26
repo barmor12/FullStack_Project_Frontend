@@ -25,10 +25,22 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
             onPress={handleNavigateToUserProfile}
           >
             <Text style={styles.profileText}>{user.nickname}</Text>
-            <Image
-              source={{ uri: `${config.serverUrl}${user.profilePic}` }}
-              style={styles.profileIcon}
-            />
+            {user.profilePic && (
+              <Image
+                source={{
+                  uri: user.profilePic.startsWith("http")
+                    ? user.profilePic
+                    : `${config.serverUrl}${user.profilePic}`,
+                }}
+                style={styles.profileIcon}
+                onError={(e) =>
+                  console.error(
+                    "Failed to load profile picture",
+                    e.nativeEvent.error
+                  )
+                }
+              />
+            )}
           </TouchableOpacity>
         </View>
       )}

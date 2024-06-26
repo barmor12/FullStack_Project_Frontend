@@ -1,5 +1,10 @@
 import config from "../Config/config";
-import { fetchWithAuth } from "./authService";
+import {
+  clearTokens,
+  fetchWithAuth,
+  getAccessToken,
+  refreshAccessToken,
+} from "./authService";
 import { Post, User } from "../Types/types";
 
 export const fetchUserData = async (): Promise<User> => {
@@ -67,11 +72,48 @@ export const fetchUserPosts = async (
 ) => {
   setError("");
   try {
+    let token = await getAccessToken();
+    if (!token) {
+      throw new Error("No access token available");
+    }
+
+    const response = await fetch(`${config.serverUrl}/post/user`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.status === 401) {
+      // אם הטוקן אינו תקף, ננסה לרענן אותו
+      token = await refreshAccessToken();
+      if (token) {
+        const retryResponse = await fetch(`${config.serverUrl}/post/user`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (retryResponse.status === 200) {
+          const posts = await retryResponse.json();
+          const user = await fetchUserData();
+          setUser(user);
+          setPosts(posts);
+          return;
+        }
+      }
+      await clearTokens();
+      throw new Error("Session expired. Please log in again.");
+    } else if (response.status !== 200) {
+      throw new Error(`Failed to fetch user posts: ${response.statusText}`);
+    }
+
+    const posts = await response.json();
     const user = await fetchUserData();
-    const posts = await fetchPostsData();
-    const userPosts = posts.filter((post) => post.sender._id === user._id);
     setUser(user);
-    setPosts(userPosts);
+    setPosts(posts);
   } catch (error: unknown) {
     if (error instanceof Error) {
       setError(error.message);

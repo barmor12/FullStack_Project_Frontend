@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Image, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import config from "../../Config/config";
 import styles from "../../styles/UserProfileStyles";
 
 interface ProfilePictureProps {
@@ -20,7 +19,7 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({
       <TouchableOpacity onPress={onPress}>
         <Image
           source={{
-            uri: profilePic ? `${config.serverUrl}${profilePic}` : undefined,
+            uri: profilePic || undefined,
           }}
           style={styles.profilePic}
         />

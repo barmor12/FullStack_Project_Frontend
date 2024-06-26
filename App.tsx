@@ -15,6 +15,7 @@ import Register from "./src/Pages/Register";
 import UserProfile from "./src/Pages/UserProfile";
 import CreatePost from "./src/Pages/CreatePost";
 import PostDetails from "./src/Pages/PostDetails";
+import PasswordVerificationScreen from "./src/Pages/PasswordVerificationScreen"; // import the screen
 import { RootStackParamList } from "./src/Types/types";
 import { getAccessToken, isTokenExpired } from "./src/services/authService";
 
@@ -127,6 +128,11 @@ const App = () => {
             name="Main"
             component={MainTabNavigator}
             options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="PasswordVerification"
+            component={PasswordVerificationScreen}
+            options={{ title: "Password Verification", headerShown: false }}
           />
         </Stack.Navigator>
       </NavigationContainer>

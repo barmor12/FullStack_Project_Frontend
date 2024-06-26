@@ -20,6 +20,7 @@ export type RootStackParamList = {
   };
   UserProfileScreen: undefined;
   HomeScreen: undefined;
+  PasswordVerification: { idToken: string }; // הוספת מסך אימות הסיסמא
 };
 
 export type HomeScreenNavigationProp = StackNavigationProp<
@@ -56,9 +57,11 @@ export interface Post {
 }
 
 export interface User {
+  googleId?: string;
   _id: string;
   nickname: string;
   name: string;
   email: string;
-  profilePic: string;
+  profilePic?: string | null;
+  password?: string;
 }
