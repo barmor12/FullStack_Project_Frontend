@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
+import { View, Text, TextInput, Alert, StyleSheet } from "react-native";
 import { useNavigation, RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../Types/types";
 import config from "../Config/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Button, HelperText } from "react-native-paper";
+import { MaterialIcons } from "@expo/vector-icons";
 
 type PasswordVerificationScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -95,7 +97,14 @@ const PasswordVerificationScreen: React.FC<Props> = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>
+      <MaterialIcons
+        name="lock"
+        size={100}
+        color="#6200ee"
+        style={styles.icon}
+      />
+      <Text style={styles.header}>Set Your Password</Text>
+      <Text style={styles.subHeader}>
         Password must contain at least one uppercase letter
       </Text>
       <TextInput
@@ -122,8 +131,16 @@ const PasswordVerificationScreen: React.FC<Props> = ({ route }) => {
           },
         ]}
       />
-      <Text style={{ color: "red" }}>{passwordMessage}</Text>
-      <Button title="Submit" onPress={handlePasswordSubmit} />
+      <HelperText type="error" visible={!!passwordMessage}>
+        {passwordMessage}
+      </HelperText>
+      <Button
+        mode="contained"
+        onPress={handlePasswordSubmit}
+        style={styles.button}
+      >
+        Submit
+      </Button>
     </View>
   );
 };
@@ -133,15 +150,33 @@ const styles = StyleSheet.create({
     padding: 20,
     flex: 1,
     justifyContent: "center",
+    backgroundColor: "#f8f9fa",
   },
-  text: {
-    fontSize: 18,
+  icon: {
+    alignSelf: "center",
     marginBottom: 20,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
+    color: "#6200ee",
+  },
+  subHeader: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 30,
+    color: "#6c757d",
   },
   input: {
     borderWidth: 1,
     padding: 10,
     marginBottom: 20,
+    borderRadius: 5,
+  },
+  button: {
+    marginTop: 10,
   },
 });
 
