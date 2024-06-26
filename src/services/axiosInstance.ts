@@ -2,12 +2,10 @@ import axios from "axios";
 import { getAccessToken, refreshAccessToken, clearTokens } from "./authService";
 import config from "../Config/config";
 
-// יצירת אינסטנס של Axios
 const axiosInstance = axios.create({
   baseURL: config.serverUrl,
 });
 
-// אינטרספטור לבדיקת תוקף הטוקן והוספתו לכל בקשה
 axiosInstance.interceptors.request.use(
   async (config) => {
     let token = await getAccessToken();
@@ -21,7 +19,6 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// אינטרספטור לניהול תגובות 401 (Unauthorized)
 axiosInstance.interceptors.response.use(
   (response) => {
     return response;

@@ -20,7 +20,7 @@ export type RootStackParamList = {
   };
   UserProfileScreen: undefined;
   HomeScreen: undefined;
-  PasswordVerification: { idToken: string }; // הוספת מסך אימות הסיסמא
+  PasswordVerification: { idToken: string };
 };
 
 export type HomeScreenNavigationProp = StackNavigationProp<

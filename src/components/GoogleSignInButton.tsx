@@ -1,22 +1,34 @@
 import React from "react";
-import { Button } from "react-native-paper";
-import { StyleSheet } from "react-native";
+import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
 
-interface GoogleSignInButtonProps {
+interface Props {
   onPress: () => void;
 }
 
-const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onPress }) => {
+const GoogleSignInButton: React.FC<Props> = ({ onPress }) => {
   return (
-    <Button mode="contained" onPress={onPress} style={styles.button}>
-      Sign in with Google
-    </Button>
+    <TouchableOpacity style={styles.button} onPress={onPress}>
+      <Icon name="google" size={20} color="#FFFFFF" />
+      <Text style={styles.buttonText}>Sign in with Google</Text>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#4285F4",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  buttonText: {
+    marginLeft: 10,
+    color: "#FFFFFF",
+    fontSize: 16,
   },
 });
 

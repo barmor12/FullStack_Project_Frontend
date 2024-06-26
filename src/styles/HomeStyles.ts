@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginLeft: 8, // Adding margin to separate from the username
+    marginLeft: 8,
   },
   profileText: {
     fontSize: 16,
@@ -145,11 +145,11 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 5,
     position: "relative",
-    flexDirection: "column", // Ensuring column direction
+    flexDirection: "column",
   },
   textContainer: {
     alignItems: "center",
-    marginTop: 50, // Adding space to push the text below the profile
+    marginTop: 50,
   },
   headerText: {
     fontSize: 24,

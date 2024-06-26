@@ -86,7 +86,6 @@ export const fetchUserPosts = async (
     });
 
     if (response.status === 401) {
-      // אם הטוקן אינו תקף, ננסה לרענן אותו
       token = await refreshAccessToken();
       if (token) {
         const retryResponse = await fetch(`${config.serverUrl}/post/user`, {

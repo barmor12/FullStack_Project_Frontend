@@ -44,7 +44,7 @@ const CreatePost = () => {
           const post = await response.json();
           setMessage(post.message);
           setImage(post.image || null);
-          setOriginalImage(post.image || null); // Keep the original image
+          setOriginalImage(post.image || null);
         } catch (error) {
           setError("Failed to fetch post data");
         }

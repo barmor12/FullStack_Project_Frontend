@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   button: {
-    marginTop: 20,
+    marginTop: 10,
     width: "100%",
   },
   profileImageContainer: {
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     color: "gray",
   },
   googleButton: {
-    marginTop: 20,
+    marginTop: 15,
     width: "100%",
     flexDirection: "row",
     justifyContent: "center",
@@ -49,7 +49,27 @@ const styles = StyleSheet.create({
   googleButtonText: {
     marginLeft: 10,
     color: "#FFFFFF",
+    fontSize: 15,
+  },
+  registerContainer: {
+    position: "absolute",
+    bottom: 50,
+    alignSelf: "center",
+  },
+  registerText: {
+    fontSize: 14,
+    color: "#000",
+  },
+  signUpText: {
+    fontWeight: "bold",
     fontSize: 16,
+  },
+  logo: {
+    width: 250,
+    height: 250,
+    marginBottom: 30,
+    alignSelf: "center",
+    borderRadius: 125,
   },
 });
 
