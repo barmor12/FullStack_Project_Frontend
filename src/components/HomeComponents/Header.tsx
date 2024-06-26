@@ -13,7 +13,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
 
   const handleNavigateToUserProfile = () => {
-    navigation.navigate("UserProfile");
+    navigation.navigate("UserProfileTab");
   };
 
   return (

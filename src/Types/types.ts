@@ -21,6 +21,7 @@ export type RootStackParamList = {
   UserProfileScreen: undefined;
   HomeScreen: undefined;
   PasswordVerification: { idToken: string };
+  UserProfileTab: undefined; // Add this line
 };
 
 export type HomeScreenNavigationProp = StackNavigationProp<
