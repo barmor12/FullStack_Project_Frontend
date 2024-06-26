@@ -54,8 +54,8 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
               }
               style={styles.profileImage}
             />
-            <View style={styles.editIconContainer}>
-              <Icon name="edit" size={30} color="#FFFFFF" />
+            <View style={styles.cameraIconContainer}>
+              <Icon name="camera" size={30} color="#fff" />
             </View>
           </View>
         </TouchableOpacity>

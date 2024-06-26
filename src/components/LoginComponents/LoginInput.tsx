@@ -1,12 +1,13 @@
 import React from "react";
 import { TextInput } from "react-native-paper";
-import { StyleSheet } from "react-native";
+import { StyleSheet, ViewStyle } from "react-native";
 
 interface LoginInputProps {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
   secureTextEntry?: boolean;
+  style?: ViewStyle; // הוספנו את הפרופס style
 }
 
 const LoginInput: React.FC<LoginInputProps> = ({
@@ -14,6 +15,7 @@ const LoginInput: React.FC<LoginInputProps> = ({
   value,
   onChangeText,
   secureTextEntry = false,
+  style,
 }) => {
   return (
     <TextInput
@@ -22,7 +24,7 @@ const LoginInput: React.FC<LoginInputProps> = ({
       onChangeText={onChangeText}
       mode="outlined"
       secureTextEntry={secureTextEntry}
-      style={styles.input}
+      style={[styles.input, style]}
       autoCapitalize="none"
     />
   );

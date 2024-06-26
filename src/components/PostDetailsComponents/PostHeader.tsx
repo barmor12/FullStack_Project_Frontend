@@ -10,13 +10,17 @@ const PostHeader = ({
   sender: any;
   createdAt: string;
 }) => {
-  console.log(`${config.serverUrl}${sender.profilePic}`); // הדפסת ה-URL לתמונת הפרופיל בקונסול
+  const profilePicUrl = sender.profilePic.startsWith("http")
+    ? sender.profilePic
+    : `${config.serverUrl}${sender.profilePic}`;
+
+  console.log("Profile Pic URL:", profilePicUrl);
 
   return (
     <View style={styles.header}>
       {sender && sender.profilePic ? (
         <Image
-          source={{ uri: `${config.serverUrl}${sender.profilePic}` }}
+          source={{ uri: profilePicUrl }}
           style={styles.profilePic}
           onError={(e) =>
             console.error("Failed to load profile picture", e.nativeEvent.error)
