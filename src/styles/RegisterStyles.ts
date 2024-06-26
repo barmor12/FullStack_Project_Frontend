@@ -31,6 +31,14 @@ const styles = StyleSheet.create({
     height: 300,
     borderRadius: 300,
   },
+  editIconContainer: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    backgroundColor: "#00000080",
+    borderRadius: 15,
+    padding: 5,
+  },
   errorText: {
     color: "red",
     marginTop: 10,
@@ -45,6 +53,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#4285F4",
+    borderRadius: 4,
   },
   googleButtonText: {
     marginLeft: 10,

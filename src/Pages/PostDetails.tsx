@@ -66,7 +66,6 @@ const PostDetails: React.FC = () => {
 
   const openFullImage = (uri: string) => {
     Alert.alert("Image clicked", uri);
-    // Here you can navigate to a full image view or do something else
   };
 
   const handleEditPost = () => {
