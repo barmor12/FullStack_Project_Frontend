@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, ScrollView, TouchableOpacity, Image, Text } from "react-native";
 import { TextInput, Button } from "react-native-paper";
+import Icon from "react-native-vector-icons/FontAwesome";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../Types/types";
 import { useGoogleAuth } from "../services/authService";
@@ -49,7 +50,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
               source={
                 profilePic
                   ? { uri: profilePic }
-                  : require("../assets//Profile pic.webp")
+                  : require("../assets/default_profile_pic.jpg") // Ensure you have a default image in assets
               }
               style={styles.profileImage}
             />
@@ -146,9 +147,10 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         <Button
           mode="contained"
           onPress={() => promptAsync()}
-          style={styles.button}
+          style={styles.googleButton}
         >
-          Sign up with Google
+          <Icon name="google" size={20} color="#FFFFFF" />
+          <Text style={styles.googleButtonText}>Sign up with Google</Text>
         </Button>
       </View>
     </ScrollView>

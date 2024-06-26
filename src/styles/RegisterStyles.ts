@@ -27,8 +27,8 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   profileImage: {
-    width: 250,
-    height: 250,
+    width: 300,
+    height: 300,
     borderRadius: 300,
   },
   errorText: {
@@ -38,6 +38,18 @@ const styles = StyleSheet.create({
   instructions: {
     marginBottom: 10,
     color: "gray",
+  },
+  googleButton: {
+    marginTop: 20,
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  googleButtonText: {
+    marginLeft: 10,
+    color: "#FFFFFF",
+    fontSize: 16,
   },
 });
 
