@@ -5,7 +5,6 @@ import {
   ScrollView,
   RefreshControl,
   Text,
-  TextInput,
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
@@ -21,11 +20,12 @@ import * as ImagePicker from "expo-image-picker";
 import { Button } from "react-native-paper";
 
 import {
-  getAccessToken,
-  refreshAccessToken,
-  clearTokens,
-} from "../services/authService";
-import config from "../Config/config";
+  fetchUserProfile,
+  saveUserProfile,
+  saveUserProfilePic,
+  validateCurrentPassword,
+  checkUsernameAvailability,
+} from "../services/UserProfileService";
 import { RootStackParamList, User } from "../Types/types";
 import styles from "../styles/UserProfileStyles";
 
@@ -34,7 +34,8 @@ import UserProfileDetails from "../components/UserProfileComponents/UserProfileD
 import UserProfileEdit from "../components/UserProfileComponents/UserProfileEdit";
 import LogoutButton from "../components/UserProfileComponents/LogoutButton";
 import FullImageModal from "../components/HomeComponents/FullImageModal";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { clearTokens, getAccessToken } from "src/services/authService";
+import config from "src/Config/config";
 
 const UserProfile: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -65,73 +66,15 @@ const UserProfile: React.FC = () => {
   );
 
   const fetchData = async () => {
-    await fetchUserProfile();
-  };
-
-  const fetchUserProfile = async () => {
-    setError("");
-    setLoading(true);
     try {
-      let token = await getAccessToken();
-      let response = await fetch(`${config.serverUrl}/auth/user`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      let responseText = await response.text();
-      console.log("Response Headers:", response.headers);
-      console.log("Response Text:", responseText);
-
-      if (response.status === 401 && responseText.includes("Token expired")) {
-        try {
-          token = await refreshAccessToken();
-          response = await fetch(`${config.serverUrl}/auth/user`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          responseText = await response.text();
-        } catch (refreshError) {
-          console.error("Failed to refresh access token:", refreshError);
-          await clearTokens();
-          setError("Session expired. Please log in again.");
-          return;
-        }
-      }
-
-      try {
-        const json = JSON.parse(responseText);
-        if (response.status === 200) {
-          console.log("User profile data:", json);
-          setUser({
-            ...json,
-            profilePic: json.profilePic.startsWith("http")
-              ? json.profilePic
-              : `${config.serverUrl}${json.profilePic}`,
-          });
-          setNewUsername(json.nickname);
-        } else {
-          setError(json.error || "Failed to fetch user profile!");
-        }
-      } catch (parseError) {
-        if (parseError instanceof Error) {
-          console.error("Failed to parse response:", parseError);
-          setError(`Failed to parse response: ${parseError.message}`);
-        } else {
-          console.error("Unknown error while parsing response");
-          setError("Unknown error while parsing response");
-        }
-      }
+      const userProfile = await fetchUserProfile();
+      setUser(userProfile);
+      setNewUsername(userProfile.nickname);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
       } else {
-        setError("Network error or server is down");
+        setError("An unknown error occurred");
       }
     } finally {
       setLoading(false);
@@ -149,85 +92,42 @@ const UserProfile: React.FC = () => {
       return;
     }
 
-    // Check username availability before saving, but skip if the username hasn't changed
     if (newUsername !== user?.nickname) {
-      try {
-        const response = await fetch(
-          `${config.serverUrl}/auth/check-username`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ username: newUsername }),
-          }
-        );
-        const result = await response.json();
-        if (!result.available) {
-          setUsernameStatus("Username is already taken");
-          setUsernameStatusColor("red");
-          return;
-        } else {
-          setUsernameStatus("Username is available");
-          setUsernameStatusColor("green");
-        }
-      } catch (error) {
-        setError("Error checking username availability");
-        return;
-      }
-    }
-
-    // Check current password before saving
-    try {
-      const token = await AsyncStorage.getItem("accessToken");
-      const response = await fetch(
-        `${config.serverUrl}/auth/validate-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ password: currentPassword }),
-        }
-      );
-      const result = await response.json();
-      if (!result.valid) {
-        setPasswordStatus("Current password is incorrect");
-        setPasswordStatusColor("red");
+      const isUsernameAvailable = await checkUsernameAvailability(newUsername);
+      if (!isUsernameAvailable) {
+        setUsernameStatus("Username is already taken");
+        setUsernameStatusColor("red");
         return;
       } else {
-        setPasswordStatus("Current password is correct");
-        setPasswordStatusColor("green");
+        setUsernameStatus("Username is available");
+        setUsernameStatusColor("green");
       }
-    } catch (error) {
-      setError("Error validating current password");
+    } else {
+      setUsernameStatus("This is your current username");
+      setUsernameStatusColor("blue");
+    }
+
+    const isCurrentPasswordValid = await validateCurrentPassword(
+      currentPassword
+    );
+    if (!isCurrentPasswordValid) {
+      setPasswordStatus("Current password is incorrect");
+      setPasswordStatusColor("red");
       return;
+    } else {
+      setPasswordStatus("Current password is correct");
+      setPasswordStatusColor("green");
     }
 
     try {
       setLoading(true);
-      const token = await getAccessToken();
-      const response = await fetch(`${config.serverUrl}/auth/user`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: newUsername,
-          email: user?.email ?? "",
-          oldPassword: currentPassword,
-          newPassword: newPassword,
-        }),
-      });
-      const json = await response.json();
-      setUser({
-        ...json,
-        profilePic: json.profilePic.startsWith("http")
-          ? json.profilePic
-          : `${config.serverUrl}${json.profilePic}`,
-      });
+      const updatedUserProfile = await saveUserProfile(
+        newUsername,
+        currentPassword,
+        newPassword,
+        user?.email ?? ""
+      );
+      setUser(updatedUserProfile);
       setIsEditing(false);
       resetForm();
     } catch (error: unknown) {
@@ -243,30 +143,8 @@ const UserProfile: React.FC = () => {
 
   const handleSaveProfilePic = async (uri: string) => {
     try {
-      const formData = new FormData();
-      formData.append("profilePic", {
-        uri,
-        type: "image/jpeg",
-        name: "profile.jpg",
-      } as any);
-
-      const token = await getAccessToken();
-      const response = await fetch(`${config.serverUrl}/auth/profile-pic`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      const json = await response.json();
-      setUser({
-        ...json,
-        profilePic: json.profilePic.startsWith("http")
-          ? json.profilePic
-          : `${config.serverUrl}${json.profilePic}`,
-      });
+      const updatedUserProfile = await saveUserProfilePic(uri);
+      setUser(updatedUserProfile);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
@@ -289,64 +167,6 @@ const UserProfile: React.FC = () => {
     setPasswordStatus("");
     setUsernameStatus("");
     setNewPasswordStatus("");
-  };
-
-  const validateCurrentPassword = async (password: string) => {
-    try {
-      const token = await AsyncStorage.getItem("accessToken");
-      console.log("Validating current password with token:", token);
-      const response = await fetch(
-        `${config.serverUrl}/auth/validate-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ password }),
-        }
-      );
-      const result = await response.json();
-      console.log("Validation result:", result);
-      if (result.valid) {
-        setPasswordStatus("Current password is correct");
-        setPasswordStatusColor("green");
-      } else {
-        setPasswordStatus("Current password is incorrect");
-        setPasswordStatusColor("red");
-      }
-    } catch (error) {
-      setPasswordStatus("Error validating password");
-      setPasswordStatusColor("red");
-    }
-  };
-
-  const checkUsernameAvailability = async (username: string) => {
-    if (username === user?.nickname) {
-      setUsernameStatus("This is your current username");
-      setUsernameStatusColor("green");
-      return;
-    }
-    try {
-      const response = await fetch(`${config.serverUrl}/auth/check-username`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username }),
-      });
-      const result = await response.json();
-      if (result.available) {
-        setUsernameStatus("Username is available");
-        setUsernameStatusColor("green");
-      } else {
-        setUsernameStatus("Username is already taken");
-        setUsernameStatusColor("red");
-      }
-    } catch (error) {
-      setUsernameStatus("Error checking username availability");
-      setUsernameStatusColor("red");
-    }
   };
 
   const pickImage = async () => {
@@ -430,7 +250,7 @@ const UserProfile: React.FC = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchUserProfile();
+    await fetchData();
     setRefreshing(false);
   };
 
@@ -462,10 +282,15 @@ const UserProfile: React.FC = () => {
               newUsername={newUsername}
               setNewUsername={(username) => {
                 setNewUsername(username);
-                checkUsernameAvailability(username);
+                setUsernameStatus("");
+                setUsernameStatusColor("");
               }}
               currentPassword={currentPassword}
-              setCurrentPassword={setCurrentPassword}
+              setCurrentPassword={(password) => {
+                setCurrentPassword(password);
+                setPasswordStatus("");
+                setPasswordStatusColor("");
+              }}
               newPassword={newPassword}
               setNewPassword={setNewPassword}
               confirmNewPassword={confirmNewPassword}
@@ -480,6 +305,10 @@ const UserProfile: React.FC = () => {
               newPasswordStatusColor={newPasswordStatusColor}
               setNewPasswordStatus={setNewPasswordStatus}
               setNewPasswordStatusColor={setNewPasswordStatusColor}
+              setUsernameStatus={setUsernameStatus}
+              setUsernameStatusColor={setUsernameStatusColor}
+              setPasswordStatus={setPasswordStatus}
+              setPasswordStatusColor={setPasswordStatusColor}
             />
             <UserProfileEdit
               isEditing={isEditing}

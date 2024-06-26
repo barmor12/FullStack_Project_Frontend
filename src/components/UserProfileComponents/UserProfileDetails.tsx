@@ -14,8 +14,8 @@ interface UserProfileDetailsProps {
   setNewPassword: (password: string) => void;
   confirmNewPassword: string;
   setConfirmNewPassword: (password: string) => void;
-  validateCurrentPassword: (password: string) => void;
-  checkUsernameAvailability: (username: string) => void;
+  validateCurrentPassword: (password: string) => Promise<boolean>;
+  checkUsernameAvailability: (username: string) => Promise<boolean>;
   usernameStatus: string;
   usernameStatusColor: string;
   passwordStatus: string;
@@ -24,6 +24,10 @@ interface UserProfileDetailsProps {
   newPasswordStatusColor: string;
   setNewPasswordStatus: (status: string) => void;
   setNewPasswordStatusColor: (color: string) => void;
+  setUsernameStatus: (status: string) => void;
+  setUsernameStatusColor: (color: string) => void;
+  setPasswordStatus: (status: string) => void;
+  setPasswordStatusColor: (color: string) => void;
 }
 
 const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
@@ -47,12 +51,32 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
   newPasswordStatusColor,
   setNewPasswordStatus,
   setNewPasswordStatusColor,
+  setUsernameStatus,
+  setUsernameStatusColor,
+  setPasswordStatus,
+  setPasswordStatusColor,
 }) => {
   useEffect(() => {
-    if (currentPassword) {
-      validateCurrentPassword(currentPassword);
-    }
-  }, [currentPassword]);
+    const validatePassword = async () => {
+      if (currentPassword) {
+        const isValid = await validateCurrentPassword(currentPassword);
+        if (isValid) {
+          setPasswordStatus("Current password is correct");
+          setPasswordStatusColor("green");
+        } else {
+          setPasswordStatus("Current password is incorrect");
+          setPasswordStatusColor("red");
+        }
+      }
+    };
+
+    validatePassword();
+  }, [
+    currentPassword,
+    validateCurrentPassword,
+    setPasswordStatus,
+    setPasswordStatusColor,
+  ]);
 
   useEffect(() => {
     if (newPassword && confirmNewPassword) {
@@ -64,13 +88,40 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
         setNewPasswordStatusColor("red");
       }
     }
-  }, [newPassword, confirmNewPassword]);
+  }, [
+    newPassword,
+    confirmNewPassword,
+    setNewPasswordStatus,
+    setNewPasswordStatusColor,
+  ]);
 
   useEffect(() => {
-    if (newUsername) {
-      checkUsernameAvailability(newUsername);
-    }
-  }, [newUsername]);
+    const checkAvailability = async () => {
+      if (newUsername) {
+        if (newUsername === user.nickname) {
+          setUsernameStatus("This is your current username");
+          setUsernameStatusColor("blue");
+          return;
+        }
+        const isAvailable = await checkUsernameAvailability(newUsername);
+        if (isAvailable) {
+          setUsernameStatus("Username is available");
+          setUsernameStatusColor("green");
+        } else {
+          setUsernameStatus("Username is already taken");
+          setUsernameStatusColor("red");
+        }
+      }
+    };
+
+    checkAvailability();
+  }, [
+    newUsername,
+    checkUsernameAvailability,
+    setUsernameStatus,
+    setUsernameStatusColor,
+    user.nickname,
+  ]);
 
   return (
     <View style={styles.details}>

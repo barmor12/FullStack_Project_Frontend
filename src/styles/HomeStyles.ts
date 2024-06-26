@@ -173,8 +173,9 @@ const styles = StyleSheet.create({
   logo: {
     width: 300,
     height: 300,
-    marginBottom: 20, // Adding space between the logo and the text
+    marginBottom: 20,
     resizeMode: "contain",
+    borderRadius: 100,
   },
 });
 
