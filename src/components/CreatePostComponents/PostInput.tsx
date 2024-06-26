@@ -1,5 +1,6 @@
 import React from "react";
 import { TextInput, StyleSheet } from "react-native";
+import styles from "../../styles/CreatePostStyles";
 
 interface PostInputProps {
   value: string;
@@ -16,17 +17,5 @@ const PostInput: React.FC<PostInputProps> = ({ value, onChangeText }) => {
     />
   );
 };
-
-const styles = StyleSheet.create({
-  input: {
-    height: 100,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
-    backgroundColor: "#fff",
-    marginBottom: 20,
-  },
-});
 
 export default PostInput;

@@ -187,20 +187,7 @@ const UserProfile: React.FC = () => {
 
       if (!result.canceled && result.assets.length > 0) {
         const uri = result.assets[0].uri;
-
-        if (user?.googleId) {
-          setUser((prevUser) => {
-            if (prevUser) {
-              return {
-                ...prevUser,
-                profilePic: uri,
-              };
-            }
-            return prevUser;
-          });
-        } else {
-          handleSaveProfilePic(uri);
-        }
+        handleSaveProfilePic(uri); // תמיד נשמור את התמונה דרך הפונקציה הזאת
       }
     } catch (error: unknown) {
       if (error instanceof Error) {

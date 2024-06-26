@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from "react-native";
+import styles from "../../styles/CreatePostStyles";
 
 interface SavePostButtonProps {
   loading: boolean;
@@ -27,19 +28,5 @@ const SavePostButton: React.FC<SavePostButtonProps> = ({
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: "#007bff",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-});
 
 export default SavePostButton;
